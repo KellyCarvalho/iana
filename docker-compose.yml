@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   app:
     build:
@@ -8,6 +6,9 @@ services:
     container_name: iana-app
     ports:
       - "8080:8080"
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/ianadb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
@@ -25,7 +26,7 @@ services:
     image: mysql:8.0
     container_name: iana-mysql
     ports:
-      - "3306:3306"
+      - "3307:3306"
     environment:
       - MYSQL_DATABASE=ianadb
       - MYSQL_USER=iana
