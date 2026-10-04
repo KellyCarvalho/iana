@@ -1,44 +1,44 @@
 package com.iana.infrastructure.adapters.out.persistence.entity;
 
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "tb_books")
-public class BookJpaEntity {
+@Table(name = "tb_links")
+public class LinkJpaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
     @Column(nullable = false)
+    private String url;
+
     private String title;
 
-    @Column(nullable = false)
-    private String author;
-
-    @Column(columnDefinition = "TEXT")
     private String description;
 
-    private String coverUrl;
+    private UUID bookId;
 
     private UUID categoryId;
+
+    private boolean active = true;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public BookJpaEntity() {
+    public LinkJpaEntity() {
     }
 
-    public BookJpaEntity(UUID id, String title, String author, String description, String coverUrl, UUID categoryId, LocalDateTime createdAt) {
+    public LinkJpaEntity(UUID id, String url, String title, String description, UUID bookId, UUID categoryId, boolean active, LocalDateTime createdAt) {
         this.id = id;
+        this.url = url;
         this.title = title;
-        this.author = author;
         this.description = description;
-        this.coverUrl = coverUrl;
+        this.bookId = bookId;
         this.categoryId = categoryId;
+        this.active = active;
         this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
     }
 
@@ -50,20 +50,20 @@ public class BookJpaEntity {
         this.id = id;
     }
 
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
     public String getTitle() {
         return title;
     }
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public String getAuthor() {
-        return author;
-    }
-
-    public void setAuthor(String author) {
-        this.author = author;
     }
 
     public String getDescription() {
@@ -74,12 +74,12 @@ public class BookJpaEntity {
         this.description = description;
     }
 
-    public String getCoverUrl() {
-        return coverUrl;
+    public UUID getBookId() {
+        return bookId;
     }
 
-    public void setCoverUrl(String coverUrl) {
-        this.coverUrl = coverUrl;
+    public void setBookId(UUID bookId) {
+        this.bookId = bookId;
     }
 
     public UUID getCategoryId() {
@@ -90,6 +90,14 @@ public class BookJpaEntity {
         this.categoryId = categoryId;
     }
 
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -98,5 +106,3 @@ public class BookJpaEntity {
         this.createdAt = createdAt;
     }
 }
-
-

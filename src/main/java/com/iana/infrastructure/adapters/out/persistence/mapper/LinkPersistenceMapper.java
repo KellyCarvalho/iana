@@ -1,39 +1,37 @@
 package com.iana.infrastructure.adapters.out.persistence.mapper;
 
-import com.iana.domain.model.Book;
-import com.iana.infrastructure.adapters.out.persistence.entity.BookJpaEntity;
+import com.iana.domain.model.Link;
+import com.iana.infrastructure.adapters.out.persistence.entity.LinkJpaEntity;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BookPersistenceMapper {
+public class LinkPersistenceMapper {
 
-    public BookJpaEntity toEntity(Book domain) {
+    public LinkJpaEntity toEntity(Link domain) {
         if (domain == null) return null;
-
-        return new BookJpaEntity(
+        return new LinkJpaEntity(
                 domain.getId(),
+                domain.getUrl(),
                 domain.getTitle(),
-                domain.getAuthor(),
                 domain.getDescription(),
-                domain.getCoverUrl(),
+                domain.getBookId(),
                 domain.getCategoryId(),
+                domain.isActive(),
                 domain.getCreatedAt()
         );
     }
 
-    public Book toDomain(BookJpaEntity entity) {
+    public Link toDomain(LinkJpaEntity entity) {
         if (entity == null) return null;
-
-        return new Book(
+        return new Link(
                 entity.getId(),
+                entity.getUrl(),
                 entity.getTitle(),
-                entity.getAuthor(),
                 entity.getDescription(),
-                entity.getCoverUrl(),
+                entity.getBookId(),
                 entity.getCategoryId(),
+                entity.isActive(),
                 entity.getCreatedAt()
         );
     }
 }
-
-

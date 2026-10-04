@@ -11,19 +11,28 @@ public class Book {
     private String author;
     private String description;
     private String coverUrl;
+    private UUID categoryId;
     private LocalDateTime createdAt;
-
 
     public Book() {
     }
 
-    public Book(UUID id, String title, String author, String description, String coverUrl, LocalDateTime createdAt) {
+    public Book(UUID id, String title, String author, String description, String coverUrl, UUID categoryId, LocalDateTime createdAt) {
         this.id = id;
         this.title = title;
         this.author = author;
         this.description = description;
         this.coverUrl = coverUrl;
-        this.createdAt = createdAt;
+        this.categoryId = categoryId;
+        this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public String getTitle() {
@@ -58,20 +67,20 @@ public class Book {
         this.coverUrl = coverUrl;
     }
 
+    public UUID getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(UUID categoryId) {
+        this.categoryId = categoryId;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
     }
 
     @Override
@@ -86,3 +95,4 @@ public class Book {
         return Objects.hashCode(id);
     }
 }
+

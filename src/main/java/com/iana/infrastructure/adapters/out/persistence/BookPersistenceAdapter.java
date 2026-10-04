@@ -2,12 +2,11 @@ package com.iana.infrastructure.adapters.out.persistence;
 
 import com.iana.domain.model.Book;
 import com.iana.domain.ports.out.BookRepositoryPort;
-import com.iana.infrastructure.adapters.out.persistence.Repoditory.SpringDataBookRepository;
 import com.iana.infrastructure.adapters.out.persistence.entity.BookJpaEntity;
 import com.iana.infrastructure.adapters.out.persistence.mapper.BookPersistenceMapper;
+import com.iana.infrastructure.adapters.out.persistence.repository.SpringDataBookRepository;
 import org.springframework.stereotype.Component;
 
-import java.awt.print.Pageable;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,10 +24,10 @@ public class BookPersistenceAdapter implements BookRepositoryPort {
     }
 
     @Override
-    public void save(Book book) {
+    public Book save(Book book) {
         BookJpaEntity entity = mapper.toEntity(book);
         BookJpaEntity savedEntity = repository.save(entity);
-        mapper.toDomain(savedEntity);
+        return mapper.toDomain(savedEntity);
     }
 
     @Override
@@ -37,14 +36,15 @@ public class BookPersistenceAdapter implements BookRepositoryPort {
     }
 
     @Override
-    public List<Book> findAll(Pageable pageable) {
-        return List.of();
-    }
-
-    @Override
     public List<Book> findAll() {
         return repository.findAll().stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public void deleteById(UUID id) {
+        repository.deleteById(id);
+    }
 }
+

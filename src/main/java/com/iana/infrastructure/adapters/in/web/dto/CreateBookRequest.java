@@ -1,53 +1,36 @@
-package com.iana.infrastructure.adapters.out.persistence.entity;
+package com.iana.infrastructure.adapters.in.web.dto;
 
-import jakarta.persistence.*;
-
-import java.time.LocalDateTime;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.util.UUID;
 
-@Entity
-@Table(name = "tb_books")
-public class BookJpaEntity {
+public class CreateBookRequest {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID id;
-
-    @Column(nullable = false)
+    @NotBlank(message = "O título é obrigatório")
+    @Size(max = 150, message = "O título não pode ter mais de 150 caracteres")
     private String title;
 
-    @Column(nullable = false)
+    @NotBlank(message = "O autor é obrigatório")
+    @Size(max = 100, message = "O autor não pode ter mais de 100 caracteres")
     private String author;
 
-    @Column(columnDefinition = "TEXT")
+    @Size(max = 1000, message = "A descrição não pode ter mais de 1000 caracteres")
     private String description;
 
     private String coverUrl;
 
     private UUID categoryId;
 
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    public BookJpaEntity() {
+    public CreateBookRequest() {
     }
 
-    public BookJpaEntity(UUID id, String title, String author, String description, String coverUrl, UUID categoryId, LocalDateTime createdAt) {
-        this.id = id;
+
+    public CreateBookRequest(String title, String author, String description, String coverUrl, UUID categoryId) {
         this.title = title;
         this.author = author;
         this.description = description;
         this.coverUrl = coverUrl;
         this.categoryId = categoryId;
-        this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
     }
 
     public String getTitle() {
@@ -89,14 +72,5 @@ public class BookJpaEntity {
     public void setCategoryId(UUID categoryId) {
         this.categoryId = categoryId;
     }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
 }
-
 

@@ -1,45 +1,34 @@
-package com.iana.infrastructure.adapters.out.persistence.entity;
+package com.iana.infrastructure.adapters.in.web.dto;
 
-import jakarta.persistence.*;
+import com.iana.domain.model.Book;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Entity
-@Table(name = "tb_books")
-public class BookJpaEntity {
+public class BookResponse {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
-
-    @Column(nullable = false)
     private String title;
-
-    @Column(nullable = false)
     private String author;
-
-    @Column(columnDefinition = "TEXT")
     private String description;
-
     private String coverUrl;
-
     private UUID categoryId;
-
-    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public BookJpaEntity() {
+    public BookResponse() {
     }
 
-    public BookJpaEntity(UUID id, String title, String author, String description, String coverUrl, UUID categoryId, LocalDateTime createdAt) {
-        this.id = id;
-        this.title = title;
-        this.author = author;
-        this.description = description;
-        this.coverUrl = coverUrl;
-        this.categoryId = categoryId;
-        this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
+    public static BookResponse fromDomain(Book book) {
+        if (book == null) return null;
+        BookResponse response = new BookResponse();
+        response.setId(book.getId());
+        response.setTitle(book.getTitle());
+        response.setAuthor(book.getAuthor());
+        response.setDescription(book.getDescription());
+        response.setCoverUrl(book.getCoverUrl());
+        response.setCategoryId(book.getCategoryId());
+        response.setCreatedAt(book.getCreatedAt());
+        return response;
     }
 
     public UUID getId() {
@@ -98,5 +87,4 @@ public class BookJpaEntity {
         this.createdAt = createdAt;
     }
 }
-
 

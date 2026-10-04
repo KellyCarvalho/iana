@@ -1,26 +1,38 @@
-package com.iana.domain.model;
+package com.iana.infrastructure.adapters.out.persistence.entity;
 
-import java.time.LocalDateTime;
-import java.util.Objects;
-import java.util.UUID;
+// Substituída por LinkJpaEntity para desacoplamento total de microsserviço
+public class LinkContentEntity {
+}
 
-public class BookLink {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
+
+    @Column(nullable = false)
     private String url;
+
     private String description;
-    private boolean active;
+
+    private boolean active = true;
+
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public BookLink() {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "book_id")
+    private BookJpaEntity book;
+
+    public LinkContentEntity() {
     }
 
-    public BookLink(UUID id, String url, String description, boolean active, LocalDateTime createdAt) {
+    public LinkContentEntity(UUID id, String url, String description, boolean active, LocalDateTime createdAt, BookJpaEntity book) {
         this.id = id;
         this.url = url;
         this.description = description;
         this.active = active;
         this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
+        this.book = book;
     }
 
     public UUID getId() {
@@ -63,16 +75,12 @@ public class BookLink {
         this.createdAt = createdAt;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        BookLink bookLink = (BookLink) o;
-        return Objects.equals(id, bookLink.id);
+    public BookJpaEntity getBook() {
+        return book;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(id);
+    public void setBook(BookJpaEntity book) {
+        this.book = book;
     }
 }
 

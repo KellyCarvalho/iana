@@ -1,4 +1,4 @@
-package com.iana.infrastructure.adapters.out.persistence.Repoditory;
+package com.iana.infrastructure.adapters.out.persistence.repository;
 
 import com.iana.infrastructure.adapters.out.persistence.entity.BookJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
