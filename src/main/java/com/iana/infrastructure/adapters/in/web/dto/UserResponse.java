@@ -34,8 +34,9 @@ public class UserResponse {
         this.active = active;
         this.emailVerified = emailVerified;
         this.verificationToken = verificationToken;
+        String baseUrl = System.getenv("RENDER") != null ? "https://iana-aag2.onrender.com" : "http://localhost:8080";
         this.verificationLink = verificationToken != null
-                ? "http://localhost:8080/api/v1/auth/verify-email?token=" + verificationToken
+                ? baseUrl + "/api/v1/auth/verify-email?token=" + verificationToken
                 : null;
         this.createdAt = createdAt;
     }

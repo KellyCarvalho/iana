@@ -46,6 +46,16 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/",
+                                "/index.html",
+                                "/*.js",
+                                "/*.css",
+                                "/favicon.ico",
+                                "/assets/**",
+                                "/login",
+                                "/books",
+                                "/categories",
+                                "/users",
                                 "/api/v1/auth/**",
                                 "/h2-console/**",
                                 "/actuator/**",
@@ -60,7 +70,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    @Value("${cors.allowed-origins:http://localhost:*,http://127.0.0.1:*,https://*.vercel.app,https://*.onrender.com}")
+    @Value("${cors.allowed-origins:http://localhost:*,http://127.0.0.1:*,https://iana-psi.vercel.app,https://*.vercel.app,https://iana-aag2.onrender.com,https://*.onrender.com}")
     private List<String> allowedOrigins;
 
     @Bean
