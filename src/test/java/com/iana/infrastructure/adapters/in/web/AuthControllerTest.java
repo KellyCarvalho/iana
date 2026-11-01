@@ -50,7 +50,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("POST /api/v1/auth/register deve criar usuário pendente de verificação de e-mail com ROLE_USER")
     void shouldRegisterUserAndReturnVerificationToken() throws Exception {
-        CreateUserRequest request = new CreateUserRequest("Kelly", "kelly@iana.com", "123456");
+        CreateUserRequest request = new CreateUserRequest("Kelly", "kelly@iana.com", "Senha@123");
         User created = new User(UUID.randomUUID(), "Kelly", "kelly@iana.com", "hashed", "ROLE_USER", false, false, "verify-token-abc", LocalDateTime.now());
         when(createUserUseCase.execute(any(User.class))).thenReturn(created);
 
@@ -62,6 +62,17 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.role").value("ROLE_USER"))
                 .andExpect(jsonPath("$.emailVerified").value(false))
                 .andExpect(jsonPath("$.verificationToken").value("verify-token-abc"));
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/auth/register deve retornar 400 quando senha não tiver maiúscula, número e caractere especial")
+    void shouldRejectWeakPasswordOnRegister() throws Exception {
+        CreateUserRequest weakRequest = new CreateUserRequest("Kelly", "kelly@iana.com", "123456");
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(weakRequest)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test

@@ -8,12 +8,15 @@ import com.iana.domain.ports.in.DeleteUserUseCase;
 import com.iana.domain.ports.in.FindUserUseCase;
 import com.iana.domain.ports.in.UpdateUserUseCase;
 import com.iana.domain.ports.in.VerifyEmailUseCase;
+import com.iana.domain.ports.out.EmailSenderPort;
 import com.iana.domain.ports.out.UserRepositoryPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -25,13 +28,20 @@ public class UserService implements CreateUserUseCase, FindUserUseCase, UpdateUs
 
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final UserRepositoryPort userRepositoryPort;
     private final PasswordEncoder passwordEncoder;
+    private EmailSenderPort emailSenderPort;
 
     public UserService(UserRepositoryPort userRepositoryPort, PasswordEncoder passwordEncoder) {
         this.userRepositoryPort = userRepositoryPort;
         this.passwordEncoder = passwordEncoder;
+    }
+
+    @Autowired(required = false)
+    public void setEmailSenderPort(EmailSenderPort emailSenderPort) {
+        this.emailSenderPort = emailSenderPort;
     }
 
     @Override
@@ -42,17 +52,22 @@ public class UserService implements CreateUserUseCase, FindUserUseCase, UpdateUs
             throw new BusinessException("Já existe um usuário cadastrado com o e-mail: " + user.getEmail());
         }
 
+        String verificationCode = String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole("ROLE_USER");
         user.setActive(false);
         user.setEmailVerified(false);
-        user.setVerificationToken(UUID.randomUUID().toString());
+        user.setVerificationToken(verificationCode);
         if (user.getCreatedAt() == null) {
             user.setCreatedAt(LocalDateTime.now());
         }
 
         User saved = userRepositoryPort.save(user);
-        log.info("[Email Verification] Usuário cadastrado: email={}, verificationToken={}", saved.getEmail(), saved.getVerificationToken());
+        if (emailSenderPort != null) {
+            emailSenderPort.sendVerificationCode(saved.getEmail(), saved.getName(), verificationCode);
+        }
+        log.info("[Email Verification] Usuário cadastrado: email={}, codigoVerificacao={}", saved.getEmail(), saved.getVerificationToken());
         return saved;
     }
 

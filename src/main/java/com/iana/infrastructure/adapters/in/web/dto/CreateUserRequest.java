@@ -2,6 +2,7 @@ package com.iana.infrastructure.adapters.in.web.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class CreateUserRequest {
@@ -14,7 +15,11 @@ public class CreateUserRequest {
     private String email;
 
     @NotBlank(message = "A senha é obrigatória")
-    @Size(min = 6, message = "A senha deve conter no mínimo 6 caracteres")
+    @Size(min = 8, message = "A senha deve conter no mínimo 8 caracteres")
+    @Pattern(
+            regexp = "^(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$",
+            message = "A senha deve conter no mínimo 8 caracteres, incluindo pelo menos uma letra maiúscula, um número e um caractere especial"
+    )
     private String password;
 
     public CreateUserRequest() {

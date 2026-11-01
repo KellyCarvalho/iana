@@ -68,7 +68,7 @@ class UserControllerTest {
     @Test
     @DisplayName("POST /api/v1/users deve ser público (sem JWT) e atribuir ROLE_USER por padrão")
     void shouldCreateUserWithoutJwt() throws Exception {
-        CreateUserRequest request = new CreateUserRequest("Kelly", "kelly@iana.com", "123456");
+        CreateUserRequest request = new CreateUserRequest("Kelly", "kelly@iana.com", "Senha@123");
         when(createUserUseCase.execute(any(User.class))).thenReturn(user);
 
         mockMvc.perform(post("/api/v1/users")

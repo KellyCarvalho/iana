@@ -49,8 +49,22 @@ import { AuthService } from '../../core/services/auth.service';
             <input type="email" [(ngModel)]="email" name="email" placeholder="seu@email.com" required />
           </div>
           <div class="form-group">
-            <label>Senha (mín. 6 caracteres)</label>
-            <input type="password" [(ngModel)]="password" name="password" placeholder="••••••" required />
+            <label>Senha *</label>
+            <input type="password" [(ngModel)]="password" name="password" placeholder="Ex: Senha@123" required />
+            <div style="margin-top: 0.45rem; font-size: 0.78rem; display: flex; flex-direction: column; gap: 0.2rem;">
+              <span [style.color]="hasMinLength() ? '#4ade80' : '#94a3b8'">
+                {{ hasMinLength() ? '✓' : '○' }} Mínimo de 8 caracteres
+              </span>
+              <span [style.color]="hasUppercase() ? '#4ade80' : '#94a3b8'">
+                {{ hasUppercase() ? '✓' : '○' }} Pelo menos 1 letra maiúscula (A-Z)
+              </span>
+              <span [style.color]="hasNumber() ? '#4ade80' : '#94a3b8'">
+                {{ hasNumber() ? '✓' : '○' }} Pelo menos 1 número (0-9)
+              </span>
+              <span [style.color]="hasSpecialChar() ? '#4ade80' : '#94a3b8'">
+                {{ hasSpecialChar() ? '✓' : '○' }} Pelo menos 1 caractere especial (!@#$%...)
+              </span>
+            </div>
           </div>
           <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">Cadastrar (ROLE_USER)</button>
         </form>
@@ -58,10 +72,17 @@ import { AuthService } from '../../core/services/auth.service';
         <!-- VERIFY EMAIL -->
         <form *ngIf="mode === 'verify'" (ngSubmit)="onVerifyEmail()" style="display: flex; flex-direction: column; gap: 1rem;">
           <div class="form-group">
-            <label>Token de Verificação de E-mail</label>
-            <input type="text" [(ngModel)]="verificationToken" name="verificationToken" placeholder="Cole o token gerado no cadastro" required />
+            <label>Código de Verificação enviado por E-mail (6 dígitos)</label>
+            <input
+              type="text"
+              [(ngModel)]="verificationToken"
+              name="verificationToken"
+              maxlength="6"
+              placeholder="000000"
+              style="text-align: center; font-size: 1.35rem; font-weight: 700; letter-spacing: 0.35rem;"
+              required />
           </div>
-          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">Confirmar E-mail e Ativar Conta</button>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">Validar Código e Ativar Conta</button>
         </form>
       </div>
     </div>
@@ -84,6 +105,26 @@ export class AuthComponent {
     this.successMessage = '';
   }
 
+  hasMinLength(): boolean {
+    return (this.password || '').length >= 8;
+  }
+
+  hasUppercase(): boolean {
+    return /[A-Z]/.test(this.password || '');
+  }
+
+  hasNumber(): boolean {
+    return /\d/.test(this.password || '');
+  }
+
+  hasSpecialChar(): boolean {
+    return /[^A-Za-z0-9]/.test(this.password || '');
+  }
+
+  isPasswordValid(): boolean {
+    return this.hasMinLength() && this.hasUppercase() && this.hasNumber() && this.hasSpecialChar();
+  }
+
   onLogin(): void {
     this.errorMessage = '';
     this.authService.login(this.email, this.password).subscribe({
@@ -97,14 +138,21 @@ export class AuthComponent {
   onRegister(): void {
     this.errorMessage = '';
     this.successMessage = '';
+    if (!this.isPasswordValid()) {
+      this.errorMessage = 'A senha deve conter no mínimo 8 caracteres, incluindo pelo menos uma letra maiúscula, um número e um caractere especial.';
+      return;
+    }
     this.authService.register(this.name, this.email, this.password).subscribe({
       next: (user) => {
         this.verificationToken = user.verificationToken || '';
         this.mode = 'verify';
-        this.successMessage = `Usuário criado com ROLE_USER! Token de verificação preenchido abaixo — clique em Confirmar E-mail para ativar a conta.`;
+        this.successMessage = `Enviamos um código de 6 dígitos para ${this.email}! Confirme o código abaixo para ativar sua conta.`;
       },
       error: (err) => {
-        this.errorMessage = err.error?.message || 'Erro ao cadastrar usuário.';
+        this.errorMessage =
+          err.error?.fieldErrors?.password ||
+          err.error?.message ||
+          'Erro ao cadastrar usuário.';
       }
     });
   }
@@ -115,10 +163,10 @@ export class AuthComponent {
     this.authService.verifyEmail(this.verificationToken).subscribe({
       next: () => {
         this.mode = 'login';
-        this.successMessage = 'E-mail confirmado e conta ativada com sucesso! Agora você já pode fazer login.';
+        this.successMessage = 'Código confirmado e conta ativada com sucesso! Agora você já pode fazer login.';
       },
       error: (err) => {
-        this.errorMessage = err.error?.message || 'Token inválido ou já utilizado.';
+        this.errorMessage = err.error?.message || 'Código inválido ou já utilizado.';
       }
     });
   }
