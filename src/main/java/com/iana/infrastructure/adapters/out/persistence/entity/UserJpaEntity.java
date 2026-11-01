@@ -26,6 +26,10 @@ public class UserJpaEntity {
 
     private boolean active = true;
 
+    private boolean emailVerified = false;
+
+    private String verificationToken;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -33,12 +37,18 @@ public class UserJpaEntity {
     }
 
     public UserJpaEntity(UUID id, String name, String email, String password, String role, boolean active, LocalDateTime createdAt) {
+        this(id, name, email, password, role, active, active, null, createdAt);
+    }
+
+    public UserJpaEntity(UUID id, String name, String email, String password, String role, boolean active, boolean emailVerified, String verificationToken, LocalDateTime createdAt) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.password = password;
         this.role = role != null ? role : "ROLE_USER";
         this.active = active;
+        this.emailVerified = emailVerified;
+        this.verificationToken = verificationToken;
         this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
     }
 
@@ -90,6 +100,22 @@ public class UserJpaEntity {
         this.active = active;
     }
 
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
+
+    public String getVerificationToken() {
+        return verificationToken;
+    }
+
+    public void setVerificationToken(String verificationToken) {
+        this.verificationToken = verificationToken;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -98,3 +124,4 @@ public class UserJpaEntity {
         this.createdAt = createdAt;
     }
 }
+

@@ -28,7 +28,15 @@ public class HttpLinkCheckerAdapter implements BookLinkCheckerPort {
         }
 
         try {
-            URI uri = URI.create(url);
+            URI uri = URI.create(url.trim());
+            String scheme = uri.getScheme();
+            if (scheme == null || (!scheme.equalsIgnoreCase("http") && !scheme.equalsIgnoreCase("https"))) {
+                return false;
+            }
+            String host = uri.getHost();
+            if (host == null || "169.254.169.254".equals(host)) {
+                return false;
+            }
             HttpRequest requestHead = HttpRequest.newBuilder()
                     .uri(uri)
                     .method("HEAD", HttpRequest.BodyPublishers.noBody())

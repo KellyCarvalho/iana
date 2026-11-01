@@ -19,6 +19,10 @@ public class CreateBookRequest {
 
     private String coverUrl;
 
+    private String linkUrl;
+
+    private java.util.List<String> links;
+
     private UUID categoryId;
 
     public CreateBookRequest() {
@@ -63,6 +67,22 @@ public class CreateBookRequest {
 
     public void setCoverUrl(String coverUrl) {
         this.coverUrl = coverUrl;
+    }
+
+    public String getLinkUrl() {
+        return linkUrl;
+    }
+
+    public void setLinkUrl(String linkUrl) {
+        this.linkUrl = linkUrl;
+    }
+
+    public java.util.List<String> getLinks() {
+        return links;
+    }
+
+    public void setLinks(java.util.List<String> links) {
+        this.links = links;
     }
 
     public UUID getCategoryId() {

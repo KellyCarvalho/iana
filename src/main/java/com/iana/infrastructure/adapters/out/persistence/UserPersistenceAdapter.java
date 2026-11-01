@@ -41,6 +41,11 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
     }
 
     @Override
+    public Optional<User> findByVerificationToken(String verificationToken) {
+        return repository.findByVerificationToken(verificationToken).map(mapper::toDomain);
+    }
+
+    @Override
     public List<User> findAll() {
         return repository.findAll().stream()
                 .map(mapper::toDomain)

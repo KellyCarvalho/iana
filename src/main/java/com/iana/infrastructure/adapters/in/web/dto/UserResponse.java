@@ -1,10 +1,12 @@
 package com.iana.infrastructure.adapters.in.web.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.iana.domain.model.User;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserResponse {
 
     private UUID id;
@@ -12,17 +14,29 @@ public class UserResponse {
     private String email;
     private String role;
     private boolean active;
+    private boolean emailVerified;
+    private String verificationToken;
+    private String verificationLink;
     private LocalDateTime createdAt;
 
     public UserResponse() {
     }
 
     public UserResponse(UUID id, String name, String email, String role, boolean active, LocalDateTime createdAt) {
+        this(id, name, email, role, active, active, null, createdAt);
+    }
+
+    public UserResponse(UUID id, String name, String email, String role, boolean active, boolean emailVerified, String verificationToken, LocalDateTime createdAt) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.role = role;
         this.active = active;
+        this.emailVerified = emailVerified;
+        this.verificationToken = verificationToken;
+        this.verificationLink = verificationToken != null
+                ? "http://localhost:8080/api/v1/auth/verify-email?token=" + verificationToken
+                : null;
         this.createdAt = createdAt;
     }
 
@@ -34,6 +48,8 @@ public class UserResponse {
                 user.getEmail(),
                 user.getRole(),
                 user.isActive(),
+                user.isEmailVerified(),
+                user.getVerificationToken(),
                 user.getCreatedAt()
         );
     }
@@ -78,6 +94,30 @@ public class UserResponse {
         this.active = active;
     }
 
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
+
+    public String getVerificationToken() {
+        return verificationToken;
+    }
+
+    public void setVerificationToken(String verificationToken) {
+        this.verificationToken = verificationToken;
+    }
+
+    public String getVerificationLink() {
+        return verificationLink;
+    }
+
+    public void setVerificationLink(String verificationLink) {
+        this.verificationLink = verificationLink;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -86,3 +126,5 @@ public class UserResponse {
         this.createdAt = createdAt;
     }
 }
+
+

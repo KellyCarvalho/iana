@@ -16,6 +16,8 @@ public class UserPersistenceMapper {
                 user.getPassword(),
                 user.getRole(),
                 user.isActive(),
+                user.isEmailVerified(),
+                user.getVerificationToken(),
                 user.getCreatedAt()
         );
     }
@@ -29,7 +31,10 @@ public class UserPersistenceMapper {
                 entity.getPassword(),
                 entity.getRole(),
                 entity.isActive(),
+                entity.isEmailVerified(),
+                entity.getVerificationToken(),
                 entity.getCreatedAt()
         );
     }
 }
+

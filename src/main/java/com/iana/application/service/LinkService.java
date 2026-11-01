@@ -1,12 +1,17 @@
 package com.iana.application.service;
 
 import com.iana.domain.event.LinkCreatedEvent;
+import com.iana.domain.exception.ResourceNotFoundException;
 import com.iana.domain.model.Link;
 import com.iana.domain.ports.in.CreateLinkUseCase;
+import com.iana.domain.ports.in.DeleteLinkUseCase;
 import com.iana.domain.ports.in.FindLinkUseCase;
+import com.iana.domain.ports.in.UpdateLinkUseCase;
 import com.iana.domain.ports.out.BookLinkCheckerPort;
 import com.iana.domain.ports.out.EventPublisherPort;
 import com.iana.domain.ports.out.LinkRepositoryPort;
+import com.iana.domain.ports.out.LinkSafetyValidatorPort;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -15,11 +20,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-public class LinkService implements CreateLinkUseCase, FindLinkUseCase {
+public class LinkService implements CreateLinkUseCase, FindLinkUseCase, UpdateLinkUseCase, DeleteLinkUseCase {
 
     private final LinkRepositoryPort linkRepositoryPort;
     private final BookLinkCheckerPort bookLinkCheckerPort;
     private final EventPublisherPort eventPublisherPort;
+    private LinkSafetyValidatorPort linkSafetyValidatorPort;
 
     public LinkService(LinkRepositoryPort linkRepositoryPort,
                        BookLinkCheckerPort bookLinkCheckerPort,
@@ -29,8 +35,16 @@ public class LinkService implements CreateLinkUseCase, FindLinkUseCase {
         this.eventPublisherPort = eventPublisherPort;
     }
 
+    @Autowired(required = false)
+    public void setLinkSafetyValidatorPort(LinkSafetyValidatorPort linkSafetyValidatorPort) {
+        this.linkSafetyValidatorPort = linkSafetyValidatorPort;
+    }
+
     @Override
     public Link execute(Link link) {
+        if (linkSafetyValidatorPort != null) {
+            linkSafetyValidatorPort.validateSafety(link.getUrl(), link.getTitle(), link.getDescription());
+        }
         if (link.getCreatedAt() == null) {
             link.setCreatedAt(LocalDateTime.now());
         }
@@ -52,8 +66,6 @@ public class LinkService implements CreateLinkUseCase, FindLinkUseCase {
         return savedLink;
     }
 
-
-
     @Override
     public Optional<Link> findById(UUID id) {
         return linkRepositoryPort.findById(id);
@@ -73,4 +85,32 @@ public class LinkService implements CreateLinkUseCase, FindLinkUseCase {
     public List<Link> findByCategoryId(UUID categoryId) {
         return linkRepositoryPort.findByCategoryId(categoryId);
     }
+
+    @Override
+    public Link update(UUID id, Link link) {
+        if (linkSafetyValidatorPort != null) {
+            linkSafetyValidatorPort.validateSafety(link.getUrl(), link.getTitle(), link.getDescription());
+        }
+        Link existing = linkRepositoryPort.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Link não encontrado com o ID: " + id));
+
+        boolean isAccessible = bookLinkCheckerPort.isValidUrl(link.getUrl());
+        existing.setUrl(link.getUrl());
+        existing.setTitle(link.getTitle());
+        existing.setDescription(link.getDescription());
+        existing.setBookId(link.getBookId());
+        existing.setCategoryId(link.getCategoryId());
+        existing.setActive(isAccessible);
+
+        return linkRepositoryPort.save(existing);
+    }
+
+    @Override
+    public void deleteById(UUID id) {
+        if (linkRepositoryPort.findById(id).isEmpty()) {
+            throw new ResourceNotFoundException("Link não encontrado com o ID: " + id);
+        }
+        linkRepositoryPort.deleteById(id);
+    }
 }
+
