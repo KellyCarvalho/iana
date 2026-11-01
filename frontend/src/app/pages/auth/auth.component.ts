@@ -71,14 +71,18 @@ import { AuthService } from '../../core/services/auth.service';
 
         <!-- VERIFY EMAIL -->
         <form *ngIf="mode === 'verify'" (ngSubmit)="onVerifyEmail()" style="display: flex; flex-direction: column; gap: 1rem;">
+          <p style="color: #cbd5e1; font-size: 0.88rem; text-align: center; margin: 0;">
+            Digite abaixo o <strong>código de 6 dígitos</strong> enviado para o seu e-mail{{ email ? ' (' + email + ')' : '' }}:
+          </p>
           <div class="form-group">
-            <label>Código de Verificação enviado por E-mail (6 dígitos)</label>
+            <label>Código de Verificação (6 dígitos) *</label>
             <input
               type="text"
               [(ngModel)]="verificationToken"
               name="verificationToken"
               maxlength="6"
-              placeholder="000000"
+              placeholder="Digite os 6 dígitos"
+              autocomplete="one-time-code"
               style="text-align: center; font-size: 1.35rem; font-weight: 700; letter-spacing: 0.35rem;"
               required />
           </div>
@@ -143,10 +147,10 @@ export class AuthComponent {
       return;
     }
     this.authService.register(this.name, this.email, this.password).subscribe({
-      next: (user) => {
-        this.verificationToken = user.verificationToken || '';
+      next: () => {
+        this.verificationToken = '';
         this.mode = 'verify';
-        this.successMessage = `Enviamos um código de 6 dígitos para ${this.email}! Confirme o código abaixo para ativar sua conta.`;
+        this.successMessage = `Enviamos um código de verificação de 6 dígitos para o e-mail ${this.email}. Digite o código no campo abaixo para confirmar seu cadastro!`;
       },
       error: (err) => {
         this.errorMessage =
@@ -160,7 +164,7 @@ export class AuthComponent {
   onVerifyEmail(): void {
     this.errorMessage = '';
     this.successMessage = '';
-    this.authService.verifyEmail(this.verificationToken).subscribe({
+    this.authService.verifyEmail(this.verificationToken.trim()).subscribe({
       next: () => {
         this.mode = 'login';
         this.successMessage = 'Código confirmado e conta ativada com sucesso! Agora você já pode fazer login.';
