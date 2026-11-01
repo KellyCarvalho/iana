@@ -20,9 +20,6 @@ import { AuthService } from './core/services/auth.service';
         </div>
         <div style="display: flex; align-items: center; gap: 0.85rem;">
           <span style="font-size: 0.85rem; color: #94a3b8;">{{ authService.getUserEmail() }}</span>
-          <span class="badge" [ngClass]="authService.isAdmin() ? 'badge-admin' : 'badge-user'">
-            {{ authService.getUserRole() }}
-          </span>
           <button class="btn btn-secondary btn-sm" (click)="authService.logout()">Sair</button>
         </div>
       </div>

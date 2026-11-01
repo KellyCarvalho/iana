@@ -66,7 +66,7 @@ import { AuthService } from '../../core/services/auth.service';
               </span>
             </div>
           </div>
-          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">Cadastrar (ROLE_USER)</button>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">Cadastrar</button>
         </form>
 
         <!-- VERIFY EMAIL -->

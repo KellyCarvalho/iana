@@ -34,7 +34,18 @@ export class AuthService {
   }
 
   isLoggedIn(): boolean {
-    return !!localStorage.getItem(this.tokenKey);
+    const token = localStorage.getItem(this.tokenKey);
+    if (!token) return false;
+    const payload = this.getDecodedToken();
+    if (!payload) {
+      localStorage.removeItem(this.tokenKey);
+      return false;
+    }
+    if (payload.exp && Date.now() >= payload.exp * 1000) {
+      localStorage.removeItem(this.tokenKey);
+      return false;
+    }
+    return true;
   }
 
   getUserEmail(): string {

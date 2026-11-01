@@ -209,8 +209,16 @@ export class BooksComponent implements OnInit {
   }
 
   loadData(): void {
-    this.api.getBooks().subscribe({ next: (res) => (this.books = res) });
-    this.api.getCategories().subscribe({ next: (res) => (this.categories = res) });
+    this.errorMessage = '';
+    this.api.getBooks().subscribe({
+      next: (res) => (this.books = res || []),
+      error: (err) => {
+        this.errorMessage = err.error?.message || 'Não foi possível carregar a listagem de livros. Faça login novamente.';
+      }
+    });
+    this.api.getCategories().subscribe({
+      next: (res) => (this.categories = res || [])
+    });
   }
 
   togglePreview(bookId: string): void {
