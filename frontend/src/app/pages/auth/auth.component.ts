@@ -29,7 +29,7 @@ import { AuthService } from '../../core/services/auth.service';
         <form *ngIf="mode === 'login'" (ngSubmit)="onLogin()" style="display: flex; flex-direction: column; gap: 1rem;">
           <div class="form-group">
             <label>E-mail</label>
-            <input type="email" [(ngModel)]="email" name="email" placeholder="seu@email.com" required />
+            <input type="email" [(ngModel)]="email" name="email" placeholder="seu&#64;email.com" required />
           </div>
           <div class="form-group">
             <label>Senha</label>
@@ -46,11 +46,11 @@ import { AuthService } from '../../core/services/auth.service';
           </div>
           <div class="form-group">
             <label>E-mail</label>
-            <input type="email" [(ngModel)]="email" name="email" placeholder="seu@email.com" required />
+            <input type="email" [(ngModel)]="email" name="email" placeholder="seu&#64;email.com" required />
           </div>
           <div class="form-group">
             <label>Senha *</label>
-            <input type="password" [(ngModel)]="password" name="password" placeholder="Ex: Senha@123" required />
+            <input type="password" [(ngModel)]="password" name="password" placeholder="Ex: Senha#123" required />
             <div style="margin-top: 0.45rem; font-size: 0.78rem; display: flex; flex-direction: column; gap: 0.2rem;">
               <span [style.color]="hasMinLength() ? '#4ade80' : '#94a3b8'">
                 {{ hasMinLength() ? '✓' : '○' }} Mínimo de 8 caracteres
@@ -62,7 +62,7 @@ import { AuthService } from '../../core/services/auth.service';
                 {{ hasNumber() ? '✓' : '○' }} Pelo menos 1 número (0-9)
               </span>
               <span [style.color]="hasSpecialChar() ? '#4ade80' : '#94a3b8'">
-                {{ hasSpecialChar() ? '✓' : '○' }} Pelo menos 1 caractere especial (!@#$%...)
+                {{ hasSpecialChar() ? '✓' : '○' }} Pelo menos 1 caractere especial (!#$%...)
               </span>
             </div>
           </div>
