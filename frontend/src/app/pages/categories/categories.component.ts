@@ -49,14 +49,14 @@ import { Category } from '../../core/models/api.models';
         <tbody>
           <tr *ngFor="let c of categories">
             <td style="font-weight: 600;">{{ c.name }}</td>
-            <td style="color: #94a3b8;">{{ c.description || '-' }}</td>
+            <td style="color: #475569;">{{ c.description || '-' }}</td>
             <td class="actions">
               <button class="btn btn-secondary btn-sm" (click)="editCategory(c)">Editar</button>
               <button class="btn btn-danger btn-sm" (click)="requestDeleteCategory(c)">Excluir</button>
             </td>
           </tr>
           <tr *ngIf="categories.length === 0">
-            <td colspan="3" style="text-align: center; color: #94a3b8;">Nenhuma categoria cadastrada.</td>
+            <td colspan="3" style="text-align: center; color: #64748b;">Nenhuma categoria cadastrada.</td>
           </tr>
         </tbody>
       </table>
@@ -64,10 +64,10 @@ import { Category } from '../../core/models/api.models';
 
     <div
       *ngIf="categoryToDelete"
-      style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
-      <div class="card" style="max-width: 440px; width: 100%; margin: 0; border: 1px solid #475569;">
-        <h3 style="margin-bottom: 0.75rem; font-size: 1.15rem; color: #f8fafc;">Confirmar Exclusão</h3>
-        <p style="color: #cbd5e1; margin-bottom: 1.25rem; line-height: 1.5;">
+      style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+      <div class="card" style="max-width: 440px; width: 100%; margin: 0; border: 1px solid #bfdbfe;">
+        <h3 style="margin-bottom: 0.75rem; font-size: 1.15rem; color: #1e3a8a;">Confirmar Exclusão</h3>
+        <p style="color: #334155; margin-bottom: 1.25rem; line-height: 1.5;">
           Tem certeza que deseja excluir a categoria <strong>"{{ categoryToDelete.name }}"</strong>? Esta ação não pode ser desfeita.
         </p>
         <div class="actions" style="justify-content: flex-end;">

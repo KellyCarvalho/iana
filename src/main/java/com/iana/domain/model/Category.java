@@ -8,14 +8,20 @@ public class Category {
     private UUID id;
     private String name;
     private String description;
+    private String ownerEmail;
 
     public Category() {
     }
 
     public Category(UUID id, String name, String description) {
+        this(id, name, description, null);
+    }
+
+    public Category(UUID id, String name, String description, String ownerEmail) {
         this.id = id;
         this.name = name;
         this.description = description;
+        this.ownerEmail = ownerEmail;
     }
 
     public UUID getId() {
@@ -42,6 +48,14 @@ public class Category {
         this.description = description;
     }
 
+    public String getOwnerEmail() {
+        return ownerEmail;
+    }
+
+    public void setOwnerEmail(String ownerEmail) {
+        this.ownerEmail = ownerEmail;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
@@ -54,4 +68,3 @@ public class Category {
         return Objects.hashCode(id);
     }
 }
-

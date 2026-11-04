@@ -15,8 +15,8 @@ import { Balance, Category, Expense } from '../../core/models/api.models';
     <div class="page-header">
       <div>
         <h1>Organizador de Finanças</h1>
-        <p style="color: #94a3b8; font-size: 0.9rem; margin-top: 0.2rem;">
-          Gerencie suas despesas, importe faturas de cartão via CSV e acompanhe seu saldo.
+        <p style="color: #475569; font-size: 0.9rem; margin-top: 0.2rem;">
+          Gerencie suas despesas, importe faturas de cartão ou boletos (CSV/PDF) e acompanhe seu saldo.
         </p>
       </div>
       <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
@@ -49,11 +49,11 @@ import { Balance, Category, Expense } from '../../core/models/api.models';
 
     <!-- Cards de Resumo Financeiro -->
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-      <div class="card" style="margin-bottom: 0; border-left: 4px solid #10b981;">
-        <div style="font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; font-weight: 600;">
+      <div class="card" style="margin-bottom: 0; border-left: 5px solid #059669;">
+        <div style="font-size: 0.78rem; color: #475569; text-transform: uppercase; font-weight: 700;">
           Total de Saldos / Entradas
         </div>
-        <div style="font-size: 1.6rem; font-weight: 700; color: #34d399; margin-top: 0.35rem;">
+        <div style="font-size: 1.65rem; font-weight: 800; color: #059669; margin-top: 0.35rem;">
           {{ formatCurrency(totalBalances) }}
         </div>
         <div style="font-size: 0.78rem; color: #64748b; margin-top: 0.25rem;">
@@ -61,11 +61,11 @@ import { Balance, Category, Expense } from '../../core/models/api.models';
         </div>
       </div>
 
-      <div class="card" style="margin-bottom: 0; border-left: 4px solid #ef4444;">
-        <div style="font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; font-weight: 600;">
+      <div class="card" style="margin-bottom: 0; border-left: 5px solid #dc2626;">
+        <div style="font-size: 0.78rem; color: #475569; text-transform: uppercase; font-weight: 700;">
           Total de Despesas
         </div>
-        <div style="font-size: 1.6rem; font-weight: 700; color: #f87171; margin-top: 0.35rem;">
+        <div style="font-size: 1.65rem; font-weight: 800; color: #dc2626; margin-top: 0.35rem;">
           {{ formatCurrency(totalExpenses) }}
         </div>
         <div style="font-size: 0.78rem; color: #64748b; margin-top: 0.25rem;">
@@ -76,13 +76,13 @@ import { Balance, Category, Expense } from '../../core/models/api.models';
       <div
         class="card"
         style="margin-bottom: 0;"
-        [style.border-left]="netBalance >= 0 ? '4px solid #6366f1' : '4px solid #f59e0b'">
-        <div style="font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; font-weight: 600;">
+        [style.border-left]="netBalance >= 0 ? '5px solid #2563eb' : '5px solid #d97706'">
+        <div style="font-size: 0.78rem; color: #475569; text-transform: uppercase; font-weight: 700;">
           Saldo Líquido (Saldos - Despesas)
         </div>
         <div
-          style="font-size: 1.6rem; font-weight: 700; margin-top: 0.35rem;"
-          [style.color]="netBalance >= 0 ? '#818cf8' : '#fbbf24'">
+          style="font-size: 1.65rem; font-weight: 800; margin-top: 0.35rem;"
+          [style.color]="netBalance >= 0 ? '#1d4ed8' : '#d97706'">
           {{ formatCurrency(netBalance) }}
         </div>
         <div style="font-size: 0.78rem; color: #64748b; margin-top: 0.25rem;">
@@ -94,13 +94,13 @@ import { Balance, Category, Expense } from '../../core/models/api.models';
     <!-- SEÇÃO DE DESPESAS -->
     <ng-container *ngIf="activeTab === 'all' || activeTab === 'expenses'">
       <!-- Card de Importação de Fatura de Cartão ou Boleto (CSV / PDF) -->
-      <div class="card" style="border: 1px dashed #4f46e5; background: rgba(30, 41, 59, 0.85);">
+      <div class="card" style="border: 2px dashed #60a5fa; background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 0.85rem;">
           <div>
-            <h2 style="font-size: 1.1rem; color: #f8fafc; display: flex; align-items: center; gap: 0.5rem;">
+            <h2 style="font-size: 1.1rem; color: #1e3a8a; display: flex; align-items: center; gap: 0.5rem;">
               💳📄 Importar Fatura de Cartão ou Boleto (CSV ou PDF)
             </h2>
-            <p style="font-size: 0.84rem; color: #94a3b8; margin-top: 0.25rem;">
+            <p style="font-size: 0.84rem; color: #475569; margin-top: 0.25rem;">
               <strong>Não precisa de template!</strong> Identificamos automaticamente as colunas e lançamentos de qualquer banco (Nubank, Inter, Itaú, Bradesco, C6, Santander) em <strong>CSV</strong> ou <strong>PDF</strong>.
             </p>
           </div>
@@ -116,11 +116,11 @@ import { Balance, Category, Expense } from '../../core/models/api.models';
               type="file"
               accept=".csv,.pdf,text/csv,application/pdf"
               (change)="onCsvFileSelected($event)"
-              style="padding: 0.5rem;" />
+              style="padding: 0.5rem; background: #ffffff;" />
           </div>
           <div class="form-group">
             <label>Categoria para a Fatura (opcional)</label>
-            <select [(ngModel)]="csvCategoryId" name="csvCategoryId">
+            <select [(ngModel)]="csvCategoryId" name="csvCategoryId" style="background: #ffffff;">
               <option [ngValue]="undefined">Automático (usar do arquivo ou sem categoria)</option>
               <option *ngFor="let c of categories" [value]="c.id">{{ c.name }}</option>
             </select>
@@ -144,16 +144,16 @@ import { Balance, Category, Expense } from '../../core/models/api.models';
         </div>
 
         <!-- Indicador quando PDF é selecionado -->
-        <div *ngIf="isPdfSelected && selectedCsvFile" style="margin-top: 0.85rem; padding: 0.75rem 1rem; border-radius: 8px; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.35); color: #cbd5e1; font-size: 0.86rem;">
+        <div *ngIf="isPdfSelected && selectedCsvFile" style="margin-top: 0.85rem; padding: 0.75rem 1rem; border-radius: 8px; background: #dbeafe; border: 1px solid #93c5fd; color: #1e3a8a; font-size: 0.86rem;">
           📄 <strong>PDF selecionado:</strong> {{ selectedCsvFile.name }} — Clique em <strong>"Importar Despesas"</strong> para extrair automaticamente as compras da fatura ou dados do boleto.
         </div>
 
         <!-- Preview rápido do CSV selecionado -->
-        <div *ngIf="csvPreviewItems.length > 0" style="margin-top: 1rem; padding-top: 0.85rem; border-top: 1px solid #334155;">
-          <div style="font-size: 0.82rem; color: #cbd5e1; margin-bottom: 0.5rem; font-weight: 600;">
+        <div *ngIf="csvPreviewItems.length > 0" style="margin-top: 1rem; padding-top: 0.85rem; border-top: 1px solid #bfdbfe;">
+          <div style="font-size: 0.82rem; color: #1e3a8a; margin-bottom: 0.5rem; font-weight: 600;">
             Pré-visualização do arquivo ({{ csvPreviewItems.length }} lançamento(s) identificado(s)):
           </div>
-          <div style="max-height: 180px; overflow-y: auto; border: 1px solid #334155; border-radius: 8px;">
+          <div style="max-height: 180px; overflow-y: auto; border: 1px solid #bfdbfe; border-radius: 8px; background: #ffffff;">
             <table>
               <thead>
                 <tr>
@@ -165,8 +165,8 @@ import { Balance, Category, Expense } from '../../core/models/api.models';
               <tbody>
                 <tr *ngFor="let item of csvPreviewItems">
                   <td style="padding: 0.5rem 0.85rem; font-weight: 500;">{{ item.name }}</td>
-                  <td style="padding: 0.5rem 0.85rem; color: #94a3b8; font-size: 0.82rem;">{{ item.description }}</td>
-                  <td style="padding: 0.5rem 0.85rem; color: #f87171; font-weight: 600;">{{ formatCurrency(item.amount) }}</td>
+                  <td style="padding: 0.5rem 0.85rem; color: #475569; font-size: 0.82rem;">{{ item.description }}</td>
+                  <td style="padding: 0.5rem 0.85rem; color: #dc2626; font-weight: 600;">{{ formatCurrency(item.amount) }}</td>
                 </tr>
               </tbody>
             </table>
@@ -176,7 +176,7 @@ import { Balance, Category, Expense } from '../../core/models/api.models';
 
       <!-- Formulário manual de Despesa -->
       <div class="card">
-        <h2 style="font-size: 1.15rem; margin-bottom: 1rem; color: #f8fafc;">
+        <h2 style="font-size: 1.15rem; margin-bottom: 1rem; color: #1e3a8a;">
           {{ editingExpenseId ? 'Editar Despesa' : 'Nova Despesa Manual' }}
         </h2>
         <form (ngSubmit)="saveExpense()">
@@ -231,7 +231,7 @@ import { Balance, Category, Expense } from '../../core/models/api.models';
 
       <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
-          <h2 style="font-size: 1.1rem;">Despesas Cadastradas</h2>
+          <h2 style="font-size: 1.1rem; color: #1e3a8a;">Despesas Cadastradas</h2>
           <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
             <select
               [(ngModel)]="selectedCategoryFilter"
@@ -256,11 +256,11 @@ import { Balance, Category, Expense } from '../../core/models/api.models';
           <tbody>
             <tr *ngFor="let e of expenses">
               <td style="font-weight: 600;">{{ e.name }}</td>
-              <td style="color: #cbd5e1;">{{ e.description || '-' }}</td>
+              <td style="color: #475569;">{{ e.description || '-' }}</td>
               <td>
                 <span class="badge badge-user">{{ getCategoryName(e.categoryId) }}</span>
               </td>
-              <td style="font-weight: 700; color: #f87171;">
+              <td style="font-weight: 700; color: #dc2626;">
                 - {{ formatCurrency(e.amount) }}
               </td>
               <td class="actions">
@@ -269,7 +269,7 @@ import { Balance, Category, Expense } from '../../core/models/api.models';
               </td>
             </tr>
             <tr *ngIf="expenses.length === 0">
-              <td colspan="5" style="text-align: center; color: #94a3b8;">Nenhuma despesa cadastrada.</td>
+              <td colspan="5" style="text-align: center; color: #64748b;">Nenhuma despesa cadastrada.</td>
             </tr>
           </tbody>
         </table>
@@ -279,7 +279,7 @@ import { Balance, Category, Expense } from '../../core/models/api.models';
     <!-- SEÇÃO DE SALDOS (OPCIONAL) -->
     <ng-container *ngIf="activeTab === 'all' || activeTab === 'balances'">
       <div class="card">
-        <h2 style="font-size: 1.15rem; margin-bottom: 1rem; color: #f8fafc;">
+        <h2 style="font-size: 1.15rem; margin-bottom: 1rem; color: #1e3a8a;">
           {{ editingBalanceId ? 'Editar Saldo' : 'Novo Saldo (Opcional)' }}
         </h2>
         <form (ngSubmit)="saveBalance()">
@@ -325,7 +325,7 @@ import { Balance, Category, Expense } from '../../core/models/api.models';
       </div>
 
       <div class="card">
-        <h2 style="font-size: 1.1rem; margin-bottom: 1rem;">Saldos / Entradas Cadastradas</h2>
+        <h2 style="font-size: 1.1rem; margin-bottom: 1rem; color: #1e3a8a;">Saldos / Entradas Cadastradas</h2>
         <table>
           <thead>
             <tr>
@@ -338,8 +338,8 @@ import { Balance, Category, Expense } from '../../core/models/api.models';
           <tbody>
             <tr *ngFor="let b of balances">
               <td style="font-weight: 600;">{{ b.source }}</td>
-              <td style="color: #cbd5e1;">{{ b.description || '-' }}</td>
-              <td style="font-weight: 700; color: #34d399;">
+              <td style="color: #475569;">{{ b.description || '-' }}</td>
+              <td style="font-weight: 700; color: #059669;">
                 + {{ formatCurrency(b.amount) }}
               </td>
               <td class="actions">
@@ -348,7 +348,7 @@ import { Balance, Category, Expense } from '../../core/models/api.models';
               </td>
             </tr>
             <tr *ngIf="balances.length === 0">
-              <td colspan="4" style="text-align: center; color: #94a3b8;">Nenhum saldo cadastrado ainda.</td>
+              <td colspan="4" style="text-align: center; color: #64748b;">Nenhum saldo cadastrado ainda.</td>
             </tr>
           </tbody>
         </table>
@@ -358,10 +358,10 @@ import { Balance, Category, Expense } from '../../core/models/api.models';
     <!-- Modal de confirmação de exclusão de Despesa -->
     <div
       *ngIf="expenseToDelete"
-      style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
-      <div class="card" style="max-width: 440px; width: 100%; margin: 0; border: 1px solid #475569;">
-        <h3 style="margin-bottom: 0.75rem; font-size: 1.15rem; color: #f8fafc;">Confirmar Exclusão de Despesa</h3>
-        <p style="color: #cbd5e1; margin-bottom: 1.25rem; line-height: 1.5;">
+      style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+      <div class="card" style="max-width: 440px; width: 100%; margin: 0; border: 1px solid #bfdbfe;">
+        <h3 style="margin-bottom: 0.75rem; font-size: 1.15rem; color: #1e3a8a;">Confirmar Exclusão de Despesa</h3>
+        <p style="color: #334155; margin-bottom: 1.25rem; line-height: 1.5;">
           Tem certeza que deseja excluir a despesa <strong>"{{ expenseToDelete.name }}"</strong> no valor de
           <strong>{{ formatCurrency(expenseToDelete.amount) }}</strong>?
         </p>
@@ -375,10 +375,10 @@ import { Balance, Category, Expense } from '../../core/models/api.models';
     <!-- Modal de confirmação de exclusão de Saldo -->
     <div
       *ngIf="balanceToDelete"
-      style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
-      <div class="card" style="max-width: 440px; width: 100%; margin: 0; border: 1px solid #475569;">
-        <h3 style="margin-bottom: 0.75rem; font-size: 1.15rem; color: #f8fafc;">Confirmar Exclusão de Saldo</h3>
-        <p style="color: #cbd5e1; margin-bottom: 1.25rem; line-height: 1.5;">
+      style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+      <div class="card" style="max-width: 440px; width: 100%; margin: 0; border: 1px solid #bfdbfe;">
+        <h3 style="margin-bottom: 0.75rem; font-size: 1.15rem; color: #1e3a8a;">Confirmar Exclusão de Saldo</h3>
+        <p style="color: #334155; margin-bottom: 1.25rem; line-height: 1.5;">
           Tem certeza que deseja excluir o saldo de origem <strong>"{{ balanceToDelete.source }}"</strong> no valor de
           <strong>{{ formatCurrency(balanceToDelete.amount) }}</strong>?
         </p>

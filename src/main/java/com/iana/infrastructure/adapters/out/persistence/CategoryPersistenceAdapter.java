@@ -25,25 +25,46 @@ public class CategoryPersistenceAdapter implements CategoryRepositoryPort {
 
     @Override
     public Category save(Category category) {
+        String currentUser = SecurityContextUserProvider.getCurrentUserEmail();
+        if (currentUser != null && (category.getOwnerEmail() == null || category.getOwnerEmail().isBlank())) {
+            category.setOwnerEmail(currentUser);
+        }
         CategoryJpaEntity entity = mapper.toEntity(category);
+        if (currentUser != null && (entity.getOwnerEmail() == null || entity.getOwnerEmail().isBlank())) {
+            entity.setOwnerEmail(currentUser);
+        }
         CategoryJpaEntity savedEntity = repository.save(entity);
         return mapper.toDomain(savedEntity);
     }
 
     @Override
     public Optional<Category> findById(UUID id) {
+        String currentUser = SecurityContextUserProvider.getCurrentUserEmail();
+        if (currentUser != null) {
+            return repository.findByIdAndOwnerEmail(id, currentUser).map(mapper::toDomain);
+        }
         return repository.findById(id).map(mapper::toDomain);
     }
 
     @Override
     public List<Category> findAll() {
-        return repository.findAll().stream()
+        String currentUser = SecurityContextUserProvider.getCurrentUserEmail();
+        List<CategoryJpaEntity> entities = (currentUser != null)
+                ? repository.findByOwnerEmail(currentUser)
+                : repository.findAll();
+        return entities.stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public void deleteById(UUID id) {
+        String currentUser = SecurityContextUserProvider.getCurrentUserEmail();
+        if (currentUser != null) {
+            repository.findByIdAndOwnerEmail(id, currentUser)
+                    .ifPresent(entity -> repository.deleteById(entity.getId()));
+            return;
+        }
         repository.deleteById(id);
     }
 }

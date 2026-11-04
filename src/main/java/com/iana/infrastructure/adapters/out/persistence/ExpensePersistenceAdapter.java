@@ -25,32 +25,57 @@ public class ExpensePersistenceAdapter implements ExpenseRepositoryPort {
 
     @Override
     public Expense save(Expense expense) {
+        String currentUser = SecurityContextUserProvider.getCurrentUserEmail();
+        if (currentUser != null && (expense.getOwnerEmail() == null || expense.getOwnerEmail().isBlank())) {
+            expense.setOwnerEmail(currentUser);
+        }
         ExpenseJpaEntity entity = mapper.toEntity(expense);
+        if (currentUser != null && (entity.getOwnerEmail() == null || entity.getOwnerEmail().isBlank())) {
+            entity.setOwnerEmail(currentUser);
+        }
         ExpenseJpaEntity saved = repository.save(entity);
         return mapper.toDomain(saved);
     }
 
     @Override
     public Optional<Expense> findById(UUID id) {
+        String currentUser = SecurityContextUserProvider.getCurrentUserEmail();
+        if (currentUser != null) {
+            return repository.findByIdAndOwnerEmail(id, currentUser).map(mapper::toDomain);
+        }
         return repository.findById(id).map(mapper::toDomain);
     }
 
     @Override
     public List<Expense> findAll() {
-        return repository.findAll().stream()
+        String currentUser = SecurityContextUserProvider.getCurrentUserEmail();
+        List<ExpenseJpaEntity> entities = (currentUser != null)
+                ? repository.findByOwnerEmail(currentUser)
+                : repository.findAll();
+        return entities.stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Expense> findByCategoryId(UUID categoryId) {
-        return repository.findByCategoryId(categoryId).stream()
+        String currentUser = SecurityContextUserProvider.getCurrentUserEmail();
+        List<ExpenseJpaEntity> entities = (currentUser != null)
+                ? repository.findByCategoryIdAndOwnerEmail(categoryId, currentUser)
+                : repository.findByCategoryId(categoryId);
+        return entities.stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public void deleteById(UUID id) {
+        String currentUser = SecurityContextUserProvider.getCurrentUserEmail();
+        if (currentUser != null) {
+            repository.findByIdAndOwnerEmail(id, currentUser)
+                    .ifPresent(entity -> repository.deleteById(entity.getId()));
+            return;
+        }
         repository.deleteById(id);
     }
 }

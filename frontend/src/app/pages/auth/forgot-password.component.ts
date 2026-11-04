@@ -10,9 +10,9 @@ import { AuthService } from '../../core/services/auth.service';
   imports: [CommonModule, FormsModule, RouterModule],
   template: `
     <div style="max-width: 440px; margin: 3rem auto;">
-      <div class="card">
-        <h1 style="font-size: 1.5rem; margin-bottom: 0.35rem; text-align: center;">Recuperar Senha</h1>
-        <p style="color: #94a3b8; font-size: 0.9rem; text-align: center; margin-bottom: 1.5rem;">
+      <div class="card" style="border-top: 4px solid #2563eb;">
+        <h1 style="font-size: 1.5rem; margin-bottom: 0.35rem; text-align: center; color: #1e3a8a; font-weight: 800;">Recuperar Senha</h1>
+        <p style="color: #475569; font-size: 0.9rem; text-align: center; margin-bottom: 1.5rem;">
           IANA • Verificação por E-mail
         </p>
 
@@ -21,7 +21,7 @@ import { AuthService } from '../../core/services/auth.service';
 
         <!-- ETAPA 1: Solicitar código por e-mail -->
         <form *ngIf="step === 'request'" (ngSubmit)="onRequestCode()" style="display: flex; flex-direction: column; gap: 1rem;">
-          <p style="color: #cbd5e1; font-size: 0.88rem; margin: 0;">
+          <p style="color: #334155; font-size: 0.88rem; margin: 0;">
             Informe o e-mail da sua conta para receber um <strong>código de verificação de 6 dígitos</strong>.
           </p>
           <div class="form-group">
@@ -42,12 +42,12 @@ import { AuthService } from '../../core/services/auth.service';
         <div *ngIf="step === 'verify' || step === 'reset'" style="display: flex; flex-direction: column; gap: 1rem;">
           <div class="form-group">
             <label>E-mail</label>
-            <input type="email" [value]="email" disabled style="opacity: 0.7; cursor: not-allowed;" />
+            <input type="email" [value]="email" disabled style="opacity: 0.75; cursor: not-allowed; background: #eff6ff;" />
           </div>
 
           <!-- Validação do código -->
           <form *ngIf="!codeVerified" (ngSubmit)="onVerifyCode()" style="display: flex; flex-direction: column; gap: 1rem;">
-            <p style="color: #cbd5e1; font-size: 0.88rem; text-align: center; margin: 0;">
+            <p style="color: #334155; font-size: 0.88rem; text-align: center; margin: 0;">
               Digite o <strong>código de 6 dígitos</strong> enviado para <strong>{{ email }}</strong>:
             </p>
             <div class="form-group">
@@ -59,7 +59,7 @@ import { AuthService } from '../../core/services/auth.service';
                 maxlength="6"
                 placeholder="000000"
                 autocomplete="one-time-code"
-                style="text-align: center; font-size: 1.35rem; font-weight: 700; letter-spacing: 0.35rem;"
+                style="text-align: center; font-size: 1.35rem; font-weight: 700; letter-spacing: 0.35rem; color: #1e3a8a;"
                 required />
             </div>
             <button type="submit" class="btn btn-primary" [disabled]="loading || code.trim().length !== 6" style="width: 100%;">
@@ -72,7 +72,7 @@ import { AuthService } from '../../core/services/auth.service';
 
           <!-- Campos de Nova Senha e Repita a Senha (aparecem na tela após o código ser validado) -->
           <form *ngIf="codeVerified" (ngSubmit)="onResetPassword()" style="display: flex; flex-direction: column; gap: 1rem;">
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); padding: 0.6rem 0.85rem; border-radius: 8px; font-size: 0.85rem; color: #4ade80;">
+            <div style="display: flex; align-items: center; justify-content: space-between; background: #ecfdf5; border: 1px solid #a7f3d0; padding: 0.6rem 0.85rem; border-radius: 8px; font-size: 0.85rem; color: #047857; font-weight: 600;">
               <span>✓ Código {{ code }} verificado com sucesso</span>
             </div>
 
@@ -85,16 +85,16 @@ import { AuthService } from '../../core/services/auth.service';
                 placeholder="Ex: NovaSenha#123"
                 required />
               <div style="margin-top: 0.45rem; font-size: 0.78rem; display: flex; flex-direction: column; gap: 0.2rem;">
-                <span [style.color]="hasMinLength() ? '#4ade80' : '#94a3b8'">
+                <span [style.color]="hasMinLength() ? '#059669' : '#64748b'">
                   {{ hasMinLength() ? '✓' : '○' }} Mínimo de 8 caracteres
                 </span>
-                <span [style.color]="hasUppercase() ? '#4ade80' : '#94a3b8'">
+                <span [style.color]="hasUppercase() ? '#059669' : '#64748b'">
                   {{ hasUppercase() ? '✓' : '○' }} Pelo menos 1 letra maiúscula (A-Z)
                 </span>
-                <span [style.color]="hasNumber() ? '#4ade80' : '#94a3b8'">
+                <span [style.color]="hasNumber() ? '#059669' : '#64748b'">
                   {{ hasNumber() ? '✓' : '○' }} Pelo menos 1 número (0-9)
                 </span>
-                <span [style.color]="hasSpecialChar() ? '#4ade80' : '#94a3b8'">
+                <span [style.color]="hasSpecialChar() ? '#059669' : '#64748b'">
                   {{ hasSpecialChar() ? '✓' : '○' }} Pelo menos 1 caractere especial (!#$%...)
                 </span>
               </div>
@@ -108,8 +108,8 @@ import { AuthService } from '../../core/services/auth.service';
                 name="confirmPassword"
                 placeholder="Repita a nova senha"
                 required />
-              <div *ngIf="confirmPassword.length > 0" style="margin-top: 0.35rem; font-size: 0.78rem;">
-                <span [style.color]="passwordsMatch() ? '#4ade80' : '#f87171'">
+              <div *ngIf="confirmPassword.length > 0" style="margin-top: 0.35rem; font-size: 0.78rem; font-weight: 500;">
+                <span [style.color]="passwordsMatch() ? '#059669' : '#dc2626'">
                   {{ passwordsMatch() ? '✓ As senhas coincidem' : '✗ As senhas não coincidem' }}
                 </span>
               </div>
@@ -127,7 +127,7 @@ import { AuthService } from '../../core/services/auth.service';
 
         <!-- ETAPA 4: Concluído -->
         <div *ngIf="step === 'done'" style="display: flex; flex-direction: column; gap: 1rem; text-align: center;">
-          <p style="color: #cbd5e1; font-size: 0.92rem; margin: 0;">
+          <p style="color: #334155; font-size: 0.92rem; margin: 0;">
             Sua senha foi atualizada! Você já pode acessar sua conta com a nova senha.
           </p>
           <a routerLink="/login" class="btn btn-primary" style="text-decoration: none; display: inline-block; width: 100%;">
@@ -135,8 +135,8 @@ import { AuthService } from '../../core/services/auth.service';
           </a>
         </div>
 
-        <div *ngIf="step !== 'done'" style="margin-top: 1.5rem; text-align: center; border-top: 1px solid #1e293b; padding-top: 1rem;">
-          <a routerLink="/login" style="color: #94a3b8; font-size: 0.85rem; text-decoration: none;">
+        <div *ngIf="step !== 'done'" style="margin-top: 1.5rem; text-align: center; border-top: 1px solid #dbeafe; padding-top: 1rem;">
+          <a routerLink="/login" style="color: #2563eb; font-size: 0.85rem; text-decoration: none; font-weight: 600;">
             ← Voltar para o Login
           </a>
         </div>

@@ -26,15 +26,23 @@ public class BalanceJpaEntity {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "owner_email")
+    private String ownerEmail;
+
     public BalanceJpaEntity() {
     }
 
     public BalanceJpaEntity(UUID id, String source, BigDecimal amount, String description, LocalDateTime createdAt) {
+        this(id, source, amount, description, createdAt, null);
+    }
+
+    public BalanceJpaEntity(UUID id, String source, BigDecimal amount, String description, LocalDateTime createdAt, String ownerEmail) {
         this.id = id;
         this.source = source;
         this.amount = amount;
         this.description = description;
         this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
+        this.ownerEmail = ownerEmail;
     }
 
     public UUID getId() {
@@ -75,5 +83,13 @@ public class BalanceJpaEntity {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getOwnerEmail() {
+        return ownerEmail;
+    }
+
+    public void setOwnerEmail(String ownerEmail) {
+        this.ownerEmail = ownerEmail;
     }
 }

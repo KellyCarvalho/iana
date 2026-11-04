@@ -12,16 +12,22 @@ public class Balance {
     private BigDecimal amount;
     private String description;
     private LocalDateTime createdAt;
+    private String ownerEmail;
 
     public Balance() {
     }
 
     public Balance(UUID id, String source, BigDecimal amount, String description, LocalDateTime createdAt) {
+        this(id, source, amount, description, createdAt, null);
+    }
+
+    public Balance(UUID id, String source, BigDecimal amount, String description, LocalDateTime createdAt, String ownerEmail) {
         this.id = id;
         this.source = source;
         this.amount = amount;
         this.description = description;
         this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
+        this.ownerEmail = ownerEmail;
     }
 
     public UUID getId() {
@@ -62,6 +68,14 @@ public class Balance {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getOwnerEmail() {
+        return ownerEmail;
+    }
+
+    public void setOwnerEmail(String ownerEmail) {
+        this.ownerEmail = ownerEmail;
     }
 
     @Override

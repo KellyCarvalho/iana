@@ -16,7 +16,8 @@ public class ExpensePersistenceMapper {
                 domain.getAmount(),
                 domain.getDescription(),
                 domain.getCategoryId(),
-                domain.getCreatedAt()
+                domain.getCreatedAt(),
+                domain.getOwnerEmail()
         );
     }
 
@@ -29,7 +30,8 @@ public class ExpensePersistenceMapper {
                 entity.getAmount(),
                 entity.getDescription(),
                 entity.getCategoryId(),
-                entity.getCreatedAt()
+                entity.getCreatedAt(),
+                entity.getOwnerEmail()
         );
     }
 }

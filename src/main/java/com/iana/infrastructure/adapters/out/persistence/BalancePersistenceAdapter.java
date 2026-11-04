@@ -25,25 +25,46 @@ public class BalancePersistenceAdapter implements BalanceRepositoryPort {
 
     @Override
     public Balance save(Balance balance) {
+        String currentUser = SecurityContextUserProvider.getCurrentUserEmail();
+        if (currentUser != null && (balance.getOwnerEmail() == null || balance.getOwnerEmail().isBlank())) {
+            balance.setOwnerEmail(currentUser);
+        }
         BalanceJpaEntity entity = mapper.toEntity(balance);
+        if (currentUser != null && (entity.getOwnerEmail() == null || entity.getOwnerEmail().isBlank())) {
+            entity.setOwnerEmail(currentUser);
+        }
         BalanceJpaEntity saved = repository.save(entity);
         return mapper.toDomain(saved);
     }
 
     @Override
     public Optional<Balance> findById(UUID id) {
+        String currentUser = SecurityContextUserProvider.getCurrentUserEmail();
+        if (currentUser != null) {
+            return repository.findByIdAndOwnerEmail(id, currentUser).map(mapper::toDomain);
+        }
         return repository.findById(id).map(mapper::toDomain);
     }
 
     @Override
     public List<Balance> findAll() {
-        return repository.findAll().stream()
+        String currentUser = SecurityContextUserProvider.getCurrentUserEmail();
+        List<BalanceJpaEntity> entities = (currentUser != null)
+                ? repository.findByOwnerEmail(currentUser)
+                : repository.findAll();
+        return entities.stream()
                 .map(mapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public void deleteById(UUID id) {
+        String currentUser = SecurityContextUserProvider.getCurrentUserEmail();
+        if (currentUser != null) {
+            repository.findByIdAndOwnerEmail(id, currentUser)
+                    .ifPresent(entity -> repository.deleteById(entity.getId()));
+            return;
+        }
         repository.deleteById(id);
     }
 }

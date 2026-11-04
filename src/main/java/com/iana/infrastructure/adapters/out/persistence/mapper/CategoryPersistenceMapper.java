@@ -9,11 +9,11 @@ public class CategoryPersistenceMapper {
 
     public CategoryJpaEntity toEntity(Category domain) {
         if (domain == null) return null;
-        return new CategoryJpaEntity(domain.getId(), domain.getName(), domain.getDescription());
+        return new CategoryJpaEntity(domain.getId(), domain.getName(), domain.getDescription(), domain.getOwnerEmail());
     }
 
     public Category toDomain(CategoryJpaEntity entity) {
         if (entity == null) return null;
-        return new Category(entity.getId(), entity.getName(), entity.getDescription());
+        return new Category(entity.getId(), entity.getName(), entity.getDescription(), entity.getOwnerEmail());
     }
 }

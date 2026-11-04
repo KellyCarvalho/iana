@@ -15,7 +15,8 @@ public class BalancePersistenceMapper {
                 domain.getSource(),
                 domain.getAmount(),
                 domain.getDescription(),
-                domain.getCreatedAt()
+                domain.getCreatedAt(),
+                domain.getOwnerEmail()
         );
     }
 
@@ -27,7 +28,8 @@ public class BalancePersistenceMapper {
                 entity.getSource(),
                 entity.getAmount(),
                 entity.getDescription(),
-                entity.getCreatedAt()
+                entity.getCreatedAt(),
+                entity.getOwnerEmail()
         );
     }
 }

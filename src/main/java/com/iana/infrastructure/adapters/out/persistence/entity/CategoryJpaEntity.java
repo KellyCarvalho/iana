@@ -4,25 +4,36 @@ import jakarta.persistence.*;
 import java.util.UUID;
 
 @Entity
-@Table(name = "tb_categories")
+@Table(
+        name = "tb_categories",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"name", "owner_email"})
+)
 public class CategoryJpaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String name;
 
     private String description;
+
+    @Column(name = "owner_email", nullable = false)
+    private String ownerEmail = "";
 
     public CategoryJpaEntity() {
     }
 
     public CategoryJpaEntity(UUID id, String name, String description) {
+        this(id, name, description, "");
+    }
+
+    public CategoryJpaEntity(UUID id, String name, String description, String ownerEmail) {
         this.id = id;
         this.name = name;
         this.description = description;
+        this.ownerEmail = ownerEmail != null ? ownerEmail : "";
     }
 
     public UUID getId() {
@@ -48,6 +59,12 @@ public class CategoryJpaEntity {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    public String getOwnerEmail() {
+        return ownerEmail;
+    }
+
+    public void setOwnerEmail(String ownerEmail) {
+        this.ownerEmail = ownerEmail != null ? ownerEmail : "";
+    }
 }
-
-

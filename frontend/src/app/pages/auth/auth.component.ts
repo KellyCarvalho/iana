@@ -10,13 +10,13 @@ import { AuthService } from '../../core/services/auth.service';
   imports: [CommonModule, FormsModule, RouterModule],
   template: `
     <div style="max-width: 440px; margin: 3rem auto;">
-      <div class="card">
-        <h1 style="font-size: 1.5rem; margin-bottom: 0.35rem; text-align: center;">IANA</h1>
-        <p style="color: #94a3b8; font-size: 0.9rem; text-align: center; margin-bottom: 1.5rem;">
+      <div class="card" style="border-top: 4px solid #2563eb;">
+        <h1 style="font-size: 1.6rem; margin-bottom: 0.25rem; text-align: center; color: #1e3a8a; font-weight: 800;">IANA</h1>
+        <p style="color: #475569; font-size: 0.9rem; text-align: center; margin-bottom: 1.5rem;">
           Organizador de Finanças
         </p>
 
-        <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; background: #0f172a; padding: 0.3rem; border-radius: 8px;">
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; background: #eff6ff; padding: 0.35rem; border-radius: 10px; border: 1px solid #dbeafe;">
           <button class="btn" style="flex: 1;" [ngClass]="mode === 'login' ? 'btn-primary' : 'btn-secondary'" (click)="setMode('login')">Login</button>
           <button class="btn" style="flex: 1;" [ngClass]="mode === 'register' ? 'btn-primary' : 'btn-secondary'" (click)="setMode('register')">Criar Conta</button>
         </div>
@@ -33,7 +33,7 @@ import { AuthService } from '../../core/services/auth.service';
           <div class="form-group">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <label>Senha</label>
-              <a routerLink="/forgot-password" style="color: #818cf8; font-size: 0.82rem; text-decoration: none; font-weight: 500;">
+              <a routerLink="/forgot-password" style="color: #2563eb; font-size: 0.82rem; text-decoration: none; font-weight: 600;">
                 Esqueci minha senha
               </a>
             </div>
@@ -56,16 +56,16 @@ import { AuthService } from '../../core/services/auth.service';
             <label>Senha *</label>
             <input type="password" [(ngModel)]="password" name="password" placeholder="Ex: Senha#123" required />
             <div style="margin-top: 0.45rem; font-size: 0.78rem; display: flex; flex-direction: column; gap: 0.2rem;">
-              <span [style.color]="hasMinLength() ? '#4ade80' : '#94a3b8'">
+              <span [style.color]="hasMinLength() ? '#059669' : '#64748b'">
                 {{ hasMinLength() ? '✓' : '○' }} Mínimo de 8 caracteres
               </span>
-              <span [style.color]="hasUppercase() ? '#4ade80' : '#94a3b8'">
+              <span [style.color]="hasUppercase() ? '#059669' : '#64748b'">
                 {{ hasUppercase() ? '✓' : '○' }} Pelo menos 1 letra maiúscula (A-Z)
               </span>
-              <span [style.color]="hasNumber() ? '#4ade80' : '#94a3b8'">
+              <span [style.color]="hasNumber() ? '#059669' : '#64748b'">
                 {{ hasNumber() ? '✓' : '○' }} Pelo menos 1 número (0-9)
               </span>
-              <span [style.color]="hasSpecialChar() ? '#4ade80' : '#94a3b8'">
+              <span [style.color]="hasSpecialChar() ? '#059669' : '#64748b'">
                 {{ hasSpecialChar() ? '✓' : '○' }} Pelo menos 1 caractere especial (!#$%...)
               </span>
             </div>
@@ -75,7 +75,7 @@ import { AuthService } from '../../core/services/auth.service';
 
         <!-- VERIFY EMAIL -->
         <form *ngIf="mode === 'verify'" (ngSubmit)="onVerifyEmail()" style="display: flex; flex-direction: column; gap: 1rem;">
-          <p style="color: #cbd5e1; font-size: 0.88rem; text-align: center; margin: 0;">
+          <p style="color: #334155; font-size: 0.88rem; text-align: center; margin: 0;">
             Digite abaixo o <strong>código de 6 dígitos</strong> enviado para o seu e-mail{{ email ? ' (' + email + ')' : '' }}:
           </p>
           <div class="form-group">
@@ -87,7 +87,7 @@ import { AuthService } from '../../core/services/auth.service';
               maxlength="6"
               placeholder="Digite os 6 dígitos"
               autocomplete="one-time-code"
-              style="text-align: center; font-size: 1.35rem; font-weight: 700; letter-spacing: 0.35rem;"
+              style="text-align: center; font-size: 1.35rem; font-weight: 700; letter-spacing: 0.35rem; color: #1e3a8a;"
               required />
           </div>
           <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">Validar Código e Ativar Conta</button>

@@ -28,16 +28,24 @@ public class ExpenseJpaEntity {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "owner_email")
+    private String ownerEmail;
+
     public ExpenseJpaEntity() {
     }
 
     public ExpenseJpaEntity(UUID id, String name, BigDecimal amount, String description, UUID categoryId, LocalDateTime createdAt) {
+        this(id, name, amount, description, categoryId, createdAt, null);
+    }
+
+    public ExpenseJpaEntity(UUID id, String name, BigDecimal amount, String description, UUID categoryId, LocalDateTime createdAt, String ownerEmail) {
         this.id = id;
         this.name = name;
         this.amount = amount;
         this.description = description;
         this.categoryId = categoryId;
         this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
+        this.ownerEmail = ownerEmail;
     }
 
     public UUID getId() {
@@ -86,5 +94,13 @@ public class ExpenseJpaEntity {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getOwnerEmail() {
+        return ownerEmail;
+    }
+
+    public void setOwnerEmail(String ownerEmail) {
+        this.ownerEmail = ownerEmail;
     }
 }
