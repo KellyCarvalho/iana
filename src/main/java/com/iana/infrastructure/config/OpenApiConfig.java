@@ -17,9 +17,9 @@ public class OpenApiConfig {
         final String securitySchemeName = "bearerAuth";
         return new OpenAPI()
                 .info(new Info()
-                        .title("IANA API - Organizador de Links & Livros")
+                        .title("IANA API - Organizador de Finanças")
                         .version("1.0.0")
-                        .description("Documentação interativa das APIs do microserviço IANA para gerenciamento de links, livros e categorias.")
+                        .description("Documentação interativa das APIs do microserviço IANA para gerenciamento de despesas, saldos, faturas (CSV/PDF) e categorias.")
                         .contact(new Contact().name("Equipe IANA")))
                 .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
                 .components(new Components()

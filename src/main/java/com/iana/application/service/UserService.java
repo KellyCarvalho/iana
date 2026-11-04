@@ -46,10 +46,12 @@ public class UserService implements CreateUserUseCase, FindUserUseCase, UpdateUs
 
     @Override
     public User execute(User user) {
-        validateEmailFormat(user.getEmail());
+        String normalizedEmail = normalizeEmail(user.getEmail());
+        user.setEmail(normalizedEmail);
+        validateEmailFormat(normalizedEmail);
 
-        if (userRepositoryPort.existsByEmail(user.getEmail())) {
-            throw new BusinessException("Já existe um usuário cadastrado com o e-mail: " + user.getEmail());
+        if (userRepositoryPort.existsByEmail(normalizedEmail)) {
+            throw new BusinessException("Já existe um usuário cadastrado com o e-mail: " + normalizedEmail);
         }
 
         String verificationCode = String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
@@ -96,7 +98,7 @@ public class UserService implements CreateUserUseCase, FindUserUseCase, UpdateUs
 
     @Override
     public Optional<User> findByEmail(String email) {
-        return userRepositoryPort.findByEmail(email);
+        return userRepositoryPort.findByEmail(normalizeEmail(email));
     }
 
     @Override
@@ -109,14 +111,15 @@ public class UserService implements CreateUserUseCase, FindUserUseCase, UpdateUs
         User existing = userRepositoryPort.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado com o ID: " + id));
 
-        validateEmailFormat(user.getEmail());
+        String normalizedEmail = normalizeEmail(user.getEmail());
+        validateEmailFormat(normalizedEmail);
 
-        if (!existing.getEmail().equalsIgnoreCase(user.getEmail()) && userRepositoryPort.existsByEmail(user.getEmail())) {
-            throw new BusinessException("Já existe um usuário cadastrado com o e-mail: " + user.getEmail());
+        if (!existing.getEmail().equalsIgnoreCase(normalizedEmail) && userRepositoryPort.existsByEmail(normalizedEmail)) {
+            throw new BusinessException("Já existe um usuário cadastrado com o e-mail: " + normalizedEmail);
         }
 
         existing.setName(user.getName());
-        existing.setEmail(user.getEmail());
+        existing.setEmail(normalizedEmail);
         if (user.getPassword() != null && !user.getPassword().isBlank()) {
             existing.setPassword(passwordEncoder.encode(user.getPassword()));
         }
@@ -151,6 +154,10 @@ public class UserService implements CreateUserUseCase, FindUserUseCase, UpdateUs
     private String normalizeRole(String role) {
         String upper = role.trim().toUpperCase();
         return upper.startsWith("ROLE_") ? upper : "ROLE_" + upper;
+    }
+
+    private String normalizeEmail(String email) {
+        return email != null ? email.trim().toLowerCase() : null;
     }
 
     private void validateEmailFormat(String email) {

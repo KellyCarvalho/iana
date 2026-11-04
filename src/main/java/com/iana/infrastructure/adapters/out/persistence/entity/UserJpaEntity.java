@@ -5,7 +5,10 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "tb_users")
+@Table(
+        name = "tb_users",
+        uniqueConstraints = @UniqueConstraint(name = "uk_tb_users_email", columnNames = "email")
+)
 public class UserJpaEntity {
 
     @Id

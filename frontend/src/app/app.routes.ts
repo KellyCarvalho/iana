@@ -1,15 +1,19 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/guards/auth.guard';
+import { adminGuard, authGuard } from './core/guards/auth.guard';
 import { AuthComponent } from './pages/auth/auth.component';
-import { BooksComponent } from './pages/books/books.component';
+import { ForgotPasswordComponent } from './pages/auth/forgot-password.component';
 import { CategoriesComponent } from './pages/categories/categories.component';
+import { FinancesComponent } from './pages/finances/finances.component';
 import { UsersComponent } from './pages/users/users.component';
 
 export const routes: Routes = [
   { path: 'login', component: AuthComponent },
-  { path: 'books', component: BooksComponent, canActivate: [authGuard] },
+  { path: 'forgot-password', component: ForgotPasswordComponent },
+  { path: 'finances', component: FinancesComponent, canActivate: [authGuard] },
+  { path: 'expenses', component: FinancesComponent, canActivate: [authGuard], data: { tab: 'expenses' } },
+  { path: 'balances', component: FinancesComponent, canActivate: [authGuard], data: { tab: 'balances' } },
   { path: 'categories', component: CategoriesComponent, canActivate: [authGuard] },
-  { path: 'users', component: UsersComponent, canActivate: [authGuard] },
-  { path: '', redirectTo: 'books', pathMatch: 'full' },
-  { path: '**', redirectTo: 'books' }
+  { path: 'users', component: UsersComponent, canActivate: [authGuard, adminGuard] },
+  { path: '', redirectTo: 'finances', pathMatch: 'full' },
+  { path: '**', redirectTo: 'finances' }
 ];

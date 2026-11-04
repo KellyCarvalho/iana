@@ -34,15 +34,21 @@ export interface Category {
   links?: Link[];
 }
 
-export interface Book {
+export interface Expense {
   id: string;
-  title: string;
-  author: string;
-  description: string;
-  coverUrl?: string;
-  linkUrl?: string;
+  name: string;
+  amount: number;
+  description?: string;
   categoryId?: string;
-  links?: Link[];
   createdAt: string;
 }
+
+export interface Balance {
+  id: string;
+  source: string;
+  amount: number;
+  description?: string;
+  createdAt: string;
+}
+
 

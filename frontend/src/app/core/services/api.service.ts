@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Book, Category, Link, User } from '../models/api.models';
+import { Balance, Category, Expense, Link, User } from '../models/api.models';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -10,21 +10,49 @@ export class ApiService {
 
   constructor(private http: HttpClient) {}
 
-  // Books
-  getBooks(): Observable<Book[]> {
-    return this.http.get<Book[]>(`${this.baseUrl}/books`);
+  // Expenses (Despesas)
+  getExpenses(categoryId?: string): Observable<Expense[]> {
+    let params = new HttpParams();
+    if (categoryId) params = params.set('categoryId', categoryId);
+    return this.http.get<Expense[]>(`${this.baseUrl}/expenses`, { params });
   }
 
-  createBook(book: Partial<Book>): Observable<Book> {
-    return this.http.post<Book>(`${this.baseUrl}/books`, book);
+  createExpense(expense: Partial<Expense>): Observable<Expense> {
+    return this.http.post<Expense>(`${this.baseUrl}/expenses`, expense);
   }
 
-  updateBook(id: string, book: Partial<Book>): Observable<Book> {
-    return this.http.put<Book>(`${this.baseUrl}/books/${id}`, book);
+  updateExpense(id: string, expense: Partial<Expense>): Observable<Expense> {
+    return this.http.put<Expense>(`${this.baseUrl}/expenses/${id}`, expense);
   }
 
-  deleteBook(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/books/${id}`);
+  deleteExpense(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/expenses/${id}`);
+  }
+
+  importExpensesCsv(file: File, categoryId?: string): Observable<Expense[]> {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (categoryId) {
+      formData.append('categoryId', categoryId);
+    }
+    return this.http.post<Expense[]>(`${this.baseUrl}/expenses/import-csv`, formData);
+  }
+
+  // Balances (Saldos)
+  getBalances(): Observable<Balance[]> {
+    return this.http.get<Balance[]>(`${this.baseUrl}/balances`);
+  }
+
+  createBalance(balance: Partial<Balance>): Observable<Balance> {
+    return this.http.post<Balance>(`${this.baseUrl}/balances`, balance);
+  }
+
+  updateBalance(id: string, balance: Partial<Balance>): Observable<Balance> {
+    return this.http.put<Balance>(`${this.baseUrl}/balances/${id}`, balance);
+  }
+
+  deleteBalance(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/balances/${id}`);
   }
 
   // Categories

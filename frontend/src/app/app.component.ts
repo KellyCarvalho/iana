@@ -13,9 +13,9 @@ import { AuthService } from './core/services/auth.service';
         <div style="display: flex; align-items: center; gap: 2rem;">
           <span style="font-weight: 700; font-size: 1.25rem; color: #818cf8; letter-spacing: -0.02em;">IANA</span>
           <div style="display: flex; gap: 1.25rem;">
-            <a routerLink="/books" routerLinkActive="active-link" style="color: #cbd5e1; text-decoration: none; font-weight: 500;">Livros</a>
+            <a routerLink="/finances" routerLinkActive="active-link" style="color: #cbd5e1; text-decoration: none; font-weight: 500;">Finanças</a>
             <a routerLink="/categories" routerLinkActive="active-link" style="color: #cbd5e1; text-decoration: none; font-weight: 500;">Categorias</a>
-            <a routerLink="/users" routerLinkActive="active-link" style="color: #cbd5e1; text-decoration: none; font-weight: 500;">Usuários</a>
+            <a *ngIf="authService.isAdmin()" routerLink="/users" routerLinkActive="active-link" style="color: #cbd5e1; text-decoration: none; font-weight: 500;">Usuários</a>
           </div>
         </div>
         <div style="display: flex; align-items: center; gap: 0.85rem;">

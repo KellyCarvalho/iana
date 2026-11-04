@@ -5,10 +5,14 @@ import com.iana.domain.exception.UnauthorizedException;
 import com.iana.domain.model.User;
 import com.iana.domain.ports.in.AuthenticateUserUseCase;
 import com.iana.domain.ports.in.CreateUserUseCase;
+import com.iana.domain.ports.in.PasswordResetUseCase;
 import com.iana.domain.ports.in.VerifyEmailUseCase;
 import com.iana.infrastructure.adapters.in.web.dto.CreateUserRequest;
+import com.iana.infrastructure.adapters.in.web.dto.ForgotPasswordRequest;
 import com.iana.infrastructure.adapters.in.web.dto.LoginRequest;
+import com.iana.infrastructure.adapters.in.web.dto.ResetPasswordRequest;
 import com.iana.infrastructure.adapters.in.web.dto.VerifyEmailRequest;
+import com.iana.infrastructure.adapters.in.web.dto.VerifyResetCodeRequest;
 import com.iana.infrastructure.config.SecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,6 +27,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -46,6 +51,9 @@ class AuthControllerTest {
 
     @MockitoBean
     private VerifyEmailUseCase verifyEmailUseCase;
+
+    @MockitoBean
+    private PasswordResetUseCase passwordResetUseCase;
 
     @Test
     @DisplayName("POST /api/v1/auth/register deve criar usuário pendente de verificação de e-mail com ROLE_USER")

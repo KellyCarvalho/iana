@@ -1,25 +1,24 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-auth',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   template: `
     <div style="max-width: 440px; margin: 3rem auto;">
       <div class="card">
         <h1 style="font-size: 1.5rem; margin-bottom: 0.35rem; text-align: center;">IANA</h1>
         <p style="color: #94a3b8; font-size: 0.9rem; text-align: center; margin-bottom: 1.5rem;">
-          Organizador de Links & Livros
+          Organizador de Finanças
         </p>
 
         <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; background: #0f172a; padding: 0.3rem; border-radius: 8px;">
           <button class="btn" style="flex: 1;" [ngClass]="mode === 'login' ? 'btn-primary' : 'btn-secondary'" (click)="setMode('login')">Login</button>
           <button class="btn" style="flex: 1;" [ngClass]="mode === 'register' ? 'btn-primary' : 'btn-secondary'" (click)="setMode('register')">Criar Conta</button>
-          <button class="btn" style="flex: 1;" [ngClass]="mode === 'verify' ? 'btn-primary' : 'btn-secondary'" (click)="setMode('verify')">Verificar E-mail</button>
         </div>
 
         <div *ngIf="errorMessage" class="alert alert-error">{{ errorMessage }}</div>
@@ -32,7 +31,12 @@ import { AuthService } from '../../core/services/auth.service';
             <input type="email" [(ngModel)]="email" name="email" placeholder="seu&#64;email.com" required />
           </div>
           <div class="form-group">
-            <label>Senha</label>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label>Senha</label>
+              <a routerLink="/forgot-password" style="color: #818cf8; font-size: 0.82rem; text-decoration: none; font-weight: 500;">
+                Esqueci minha senha
+              </a>
+            </div>
             <input type="password" [(ngModel)]="password" name="password" placeholder="••••••" required />
           </div>
           <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">Entrar</button>
@@ -132,7 +136,7 @@ export class AuthComponent {
   onLogin(): void {
     this.errorMessage = '';
     this.authService.login(this.email, this.password).subscribe({
-      next: () => this.router.navigate(['/books']),
+      next: () => this.router.navigate(['/finances']),
       error: (err) => {
         this.errorMessage = err.error?.message || 'Falha ao autenticar. Verifique suas credenciais.';
       }

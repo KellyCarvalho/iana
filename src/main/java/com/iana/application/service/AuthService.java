@@ -25,7 +25,9 @@ public class AuthService implements AuthenticateUserUseCase {
 
     @Override
     public String authenticate(String email, String password) {
-        User user = userRepositoryPort.findByEmail(email)
+        String normalizedEmail = email != null ? email.trim().toLowerCase() : email;
+        User user = userRepositoryPort.findByEmail(normalizedEmail)
+                .or(() -> userRepositoryPort.findByEmail(email))
                 .orElseThrow(() -> new UnauthorizedException("E-mail ou senha inválidos"));
 
         if (!user.isEmailVerified()) {

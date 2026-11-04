@@ -28,6 +28,18 @@ export class AuthService {
     return this.http.post<User>(`${this.apiUrl}/verify-email`, { token });
   }
 
+  forgotPassword(email: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/forgot-password`, { email });
+  }
+
+  verifyResetCode(email: string, code: string): Observable<{ valid: boolean; message: string }> {
+    return this.http.post<{ valid: boolean; message: string }>(`${this.apiUrl}/verify-reset-code`, { email, code });
+  }
+
+  resetPassword(payload: { email: string; code: string; newPassword: string; confirmPassword: string }): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/reset-password`, payload);
+  }
+
   logout(): void {
     localStorage.removeItem(this.tokenKey);
     this.router.navigate(['/login']);

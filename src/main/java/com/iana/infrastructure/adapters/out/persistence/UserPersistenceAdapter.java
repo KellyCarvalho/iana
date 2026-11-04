@@ -37,7 +37,9 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
 
     @Override
     public Optional<User> findByEmail(String email) {
-        return repository.findByEmail(email).map(mapper::toDomain);
+        return repository.findByEmail(email)
+                .or(() -> repository.findByEmailIgnoreCase(email))
+                .map(mapper::toDomain);
     }
 
     @Override
@@ -54,7 +56,7 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
 
     @Override
     public boolean existsByEmail(String email) {
-        return repository.existsByEmail(email);
+        return repository.existsByEmail(email) || repository.existsByEmailIgnoreCase(email);
     }
 
     @Override
