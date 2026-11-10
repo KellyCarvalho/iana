@@ -1,238 +1,195 @@
 package com.iana.application.service;
 
 import com.iana.domain.exception.BusinessException;
-import com.iana.domain.model.Category;
+import com.iana.domain.model.Balance;
 import com.iana.domain.model.Expense;
 import com.iana.domain.ports.in.ImportExpensesCsvUseCase;
-import com.iana.domain.ports.out.CategoryRepositoryPort;
+import com.iana.domain.ports.out.BalanceRepositoryPort;
 import com.iana.domain.ports.out.ExpenseRepositoryPort;
-import com.iana.domain.ports.out.StatementExtractorPort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
 public class ExpenseImportService implements ImportExpensesCsvUseCase {
 
+    private static final Set<String> VALID_FIRST_HEADERS = Set.of(
+            "despesa", "despesas", "descricao", "item", "conta", "contas", "gasto", "gastos", "nome"
+    );
+
+    private static final Set<String> SUMMARY_ROW_NAMES = Set.of(
+            "total", "total despesas", "total de despesas", "total gastos", "total de gastos",
+            "subtotal", "saldo", "saldo final", "saldo liquido", "saldo restante", "balanco", "resumo"
+    );
+
     private final ExpenseRepositoryPort expenseRepositoryPort;
-    private CategoryRepositoryPort categoryRepositoryPort;
-    private StatementExtractorPort statementExtractorPort;
+    private BalanceRepositoryPort balanceRepositoryPort;
 
     public ExpenseImportService(ExpenseRepositoryPort expenseRepositoryPort) {
         this.expenseRepositoryPort = expenseRepositoryPort;
     }
 
     @Autowired(required = false)
-    public void setCategoryRepositoryPort(CategoryRepositoryPort categoryRepositoryPort) {
-        this.categoryRepositoryPort = categoryRepositoryPort;
-    }
-
-    @Autowired(required = false)
-    public void setStatementExtractorPort(StatementExtractorPort statementExtractorPort) {
-        this.statementExtractorPort = statementExtractorPort;
+    public void setBalanceRepositoryPort(BalanceRepositoryPort balanceRepositoryPort) {
+        this.balanceRepositoryPort = balanceRepositoryPort;
     }
 
     @Override
-    public List<Expense> importFromPdf(byte[] pdfBytes, UUID defaultCategoryId) {
-        if (pdfBytes == null || pdfBytes.length == 0) {
-            throw new BusinessException("O arquivo PDF está vazio.");
-        }
-        if (statementExtractorPort == null) {
-            throw new BusinessException("Extrator de PDF não configurado.");
-        }
-
-        List<Expense> extracted = statementExtractorPort.extractFromPdf(pdfBytes, defaultCategoryId);
-        if (extracted.isEmpty()) {
-            throw new BusinessException("Não foi possível identificar lançamentos ou boleto válido neste PDF.");
-        }
-
-        List<Expense> saved = new ArrayList<>();
-        for (Expense expense : extracted) {
-            if (expense.getCreatedAt() == null) {
-                expense.setCreatedAt(LocalDateTime.now());
-            }
-            saved.add(expenseRepositoryPort.save(expense));
-        }
-        return saved;
-    }
-
-    @Override
-    public List<Expense> importFromCsv(InputStream csvStream, UUID defaultCategoryId) {
+    public ImportResult importPlanilhaCsv(InputStream csvStream, UUID defaultCategoryId) {
         if (csvStream == null) {
             throw new BusinessException("Arquivo CSV não informado.");
         }
 
-        List<String> lines = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(csvStream, StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String trimmed = line.replace("\uFEFF", "").trim();
-                if (!trimmed.isEmpty()) {
-                    lines.add(trimmed);
-                }
-            }
-        } catch (IOException e) {
-            throw new BusinessException("Erro ao ler o arquivo CSV: " + e.getMessage());
-        }
+        String content = decodeCsvStream(csvStream);
+        List<String> lines = Arrays.stream(content.split("\\r?\\n"))
+                .map(line -> line.replace("\uFEFF", "").trim())
+                .filter(line -> !line.isEmpty())
+                .toList();
 
         if (lines.isEmpty()) {
             throw new BusinessException("O arquivo CSV está vazio.");
         }
 
         char delimiter = detectDelimiter(lines.get(0));
-        List<String> firstRowCols = parseCsvLine(lines.get(0), delimiter);
+        List<String> headerCols = parseCsvLine(lines.get(0), delimiter);
+        if (headerCols.size() < 2) {
+            throw new BusinessException("Modelo inválido. Use o modelo único CSV com a primeira coluna 'Despesa' seguida pelas colunas dos meses.");
+        }
 
-        int nameIdx = -1;
-        int amountIdx = -1;
-        int descIdx = -1;
-        int dateIdx = -1;
-        int categoryIdx = -1;
-        boolean hasHeader = false;
+        String firstColNormalized = normalizeText(headerCols.get(0));
+        if (!VALID_FIRST_HEADERS.contains(firstColNormalized)) {
+            throw new BusinessException("Modelo inválido. A primeira coluna do cabeçalho deve ser 'Despesa', seguida pelos meses (ex.: Despesa;Janeiro;Fevereiro;...) e a linha 'Salário'.");
+        }
 
-        for (int i = 0; i < firstRowCols.size(); i++) {
-            String col = normalizeHeader(firstRowCols.get(i));
-            if (nameIdx == -1 && (col.contains("title") || col.contains("titulo") || col.contains("nome") || col.contains("name")
-                    || col.contains("estabelecimento") || col.contains("lancamento") || col.contains("historico") || col.contains("comercio")
-                    || col.contains("merchant") || col.contains("credor") || col.contains("beneficiario"))) {
-                nameIdx = i;
-                hasHeader = true;
-            } else if (amountIdx == -1 && (col.contains("amount") || col.contains("valor") || col.contains("value")
-                    || col.contains("preco") || col.contains("quantia") || col.contains("total") || col.contains("reais"))) {
-                amountIdx = i;
-                hasHeader = true;
-            } else if (descIdx == -1 && (col.contains("description") || col.contains("descricao") || col.contains("detalhes")
-                    || col.contains("observacao") || col.contains("obs") || col.contains("parcela"))) {
-                descIdx = i;
-                hasHeader = true;
-            } else if (dateIdx == -1 && (col.contains("date") || col.contains("data") || col.contains("vencimento") || col.contains("dia"))) {
-                dateIdx = i;
-                hasHeader = true;
-            } else if (categoryIdx == -1 && (col.contains("category") || col.contains("categoria") || col.contains("tipo") || col.contains("tag"))) {
-                categoryIdx = i;
-                hasHeader = true;
+        List<Integer> monthColIndices = new ArrayList<>();
+        List<String> monthNames = new ArrayList<>();
+        for (int col = 1; col < headerCols.size(); col++) {
+            String monthHeader = headerCols.get(col).trim();
+            if (!monthHeader.isEmpty()) {
+                monthColIndices.add(col);
+                monthNames.add(monthHeader);
             }
         }
 
-        List<String> sampleDataRow = (hasHeader && lines.size() > 1)
-                ? parseCsvLine(lines.get(1), delimiter)
-                : firstRowCols;
-
-        if (!hasHeader) {
-            boolean firstRowHasNumber = firstRowCols.stream().anyMatch(c -> parseAmount(c) != null);
-            if (!firstRowHasNumber && lines.size() > 1) {
-                hasHeader = true;
-                sampleDataRow = parseCsvLine(lines.get(1), delimiter);
-            }
+        if (monthColIndices.isEmpty()) {
+            throw new BusinessException("Informe pelo menos uma coluna de mês após a coluna 'Despesa'.");
         }
 
-        if (amountIdx == -1 || nameIdx == -1) {
-            for (int i = 0; i < sampleDataRow.size(); i++) {
-                String cell = sampleDataRow.get(i).trim();
-                if (dateIdx == -1 && looksLikeDate(cell)) {
-                    dateIdx = i;
-                } else if (amountIdx == -1 && !looksLikeDate(cell) && parseAmount(cell) != null) {
-                    amountIdx = i;
-                } else if (nameIdx == -1 && !cell.isEmpty() && parseAmount(cell) == null && !looksLikeDate(cell)) {
-                    nameIdx = i;
-                } else if (descIdx == -1 && i != nameIdx && !cell.isEmpty() && parseAmount(cell) == null) {
-                    descIdx = i;
-                }
-            }
-        }
-
-        if (nameIdx == -1 && descIdx != -1) {
-            nameIdx = descIdx;
-        }
-
-        Map<String, UUID> categoryNameMap = new HashMap<>();
-        if (categoryRepositoryPort != null) {
-            for (Category c : categoryRepositoryPort.findAll()) {
-                if (c.getName() != null) {
-                    categoryNameMap.put(normalizeHeader(c.getName()), c.getId());
-                }
-            }
-        }
-
-        int startRow = hasHeader ? 1 : 0;
         List<Expense> savedExpenses = new ArrayList<>();
+        List<Balance> savedBalances = new ArrayList<>();
 
-        for (int i = startRow; i < lines.size(); i++) {
-            List<String> cols = parseCsvLine(lines.get(i), delimiter);
-            if (cols.isEmpty() || nameIdx < 0 || amountIdx < 0 || nameIdx >= cols.size() || amountIdx >= cols.size()) {
+        for (int rowIdx = 1; rowIdx < lines.size(); rowIdx++) {
+            List<String> cols = parseCsvLine(lines.get(rowIdx), delimiter);
+            if (cols.isEmpty()) {
                 continue;
             }
 
-            String rawName = cols.get(nameIdx).trim();
-            BigDecimal amount = parseAmount(cols.get(amountIdx));
-
-            if (rawName.isEmpty() || amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            String rawLabel = cols.get(0).trim();
+            if (rawLabel.isEmpty()) {
                 continue;
             }
 
-            String normalizedName = normalizeHeader(rawName);
-            if (normalizedName.contains("pagamento recebido") || normalizedName.contains("pagamento da fatura")) {
+            String normalizedLabel = normalizeText(rawLabel);
+            if (SUMMARY_ROW_NAMES.contains(normalizedLabel)) {
                 continue;
             }
 
-            String dateVal = (dateIdx >= 0 && dateIdx < cols.size()) ? cols.get(dateIdx).trim() : "";
-            String catVal = (categoryIdx >= 0 && categoryIdx < cols.size()) ? cols.get(categoryIdx).trim() : "";
-            String rawDesc = (descIdx >= 0 && descIdx < cols.size() && descIdx != nameIdx) ? cols.get(descIdx).trim() : "";
+            boolean salaryRow = isSalaryRow(normalizedLabel);
 
-            StringBuilder descBuilder = new StringBuilder();
-            if (!rawDesc.isEmpty()) {
-                descBuilder.append(rawDesc);
-            }
-            if (!dateVal.isEmpty()) {
-                if (descBuilder.length() > 0) descBuilder.append(" | ");
-                descBuilder.append("Data: ").append(dateVal);
-            }
-            if (!catVal.isEmpty()) {
-                if (descBuilder.length() > 0) descBuilder.append(" | ");
-                descBuilder.append("Origem/Cat: ").append(catVal);
-            }
-            if (descBuilder.length() == 0) {
-                descBuilder.append("Importado via fatura CSV");
-            }
+            for (int m = 0; m < monthColIndices.size(); m++) {
+                int colIdx = monthColIndices.get(m);
+                if (colIdx >= cols.size()) {
+                    continue;
+                }
 
-            UUID resolvedCategoryId = defaultCategoryId;
-            if (resolvedCategoryId == null && !catVal.isEmpty()) {
-                resolvedCategoryId = categoryNameMap.get(normalizeHeader(catVal));
+                String cellValue = cols.get(colIdx).trim();
+                if (cellValue.isEmpty() || cellValue.equals("-") || cellValue.equals("--")) {
+                    continue;
+                }
+
+                BigDecimal amount = parseAmount(cellValue);
+                if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+                    continue;
+                }
+
+                String monthName = monthNames.get(m);
+                String description = truncate("Mês: " + monthName, 500);
+                String label = truncate(rawLabel, 150);
+
+                if (salaryRow) {
+                    if (balanceRepositoryPort != null) {
+                        Balance balance = new Balance(null, label, amount, description, LocalDateTime.now());
+                        savedBalances.add(balanceRepositoryPort.save(balance));
+                    }
+                } else {
+                    Expense expense = new Expense(null, label, amount, description, defaultCategoryId, LocalDateTime.now());
+                    savedExpenses.add(expenseRepositoryPort.save(expense));
+                }
             }
-
-            String finalName = rawName.length() > 150 ? rawName.substring(0, 150) : rawName;
-            String finalDesc = descBuilder.length() > 500 ? descBuilder.substring(0, 500) : descBuilder.toString();
-
-            Expense expense = new Expense(null, finalName, amount, finalDesc, resolvedCategoryId, LocalDateTime.now());
-            savedExpenses.add(expenseRepositoryPort.save(expense));
         }
 
-        if (savedExpenses.isEmpty()) {
-            throw new BusinessException("Nenhuma despesa válida com valor positivo foi encontrada no CSV.");
+        if (savedExpenses.isEmpty() && savedBalances.isEmpty()) {
+            throw new BusinessException("Nenhum valor positivo de despesa ou salário foi encontrado na planilha CSV.");
         }
 
-        return savedExpenses;
+        return new ImportResult(savedExpenses, savedBalances);
     }
 
-    private boolean looksLikeDate(String value) {
-        if (value == null) return false;
-        String v = value.trim();
-        return v.matches("^\\d{2}/\\d{2}(/\\d{2,4})?$")
-                || v.matches("^\\d{4}-\\d{2}-\\d{2}.*")
-                || v.matches("(?i)^\\d{1,2}\\s+(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez).*");
+    private String decodeCsvStream(InputStream csvStream) {
+        try {
+            byte[] bytes = csvStream.readAllBytes();
+            if (bytes.length == 0) {
+                return "";
+            }
+
+            int offset = 0;
+            if (bytes.length >= 3
+                    && (bytes[0] & 0xFF) == 0xEF
+                    && (bytes[1] & 0xFF) == 0xBB
+                    && (bytes[2] & 0xFF) == 0xBF) {
+                offset = 3;
+            }
+
+            try {
+                return StandardCharsets.UTF_8.newDecoder()
+                        .onMalformedInput(CodingErrorAction.REPORT)
+                        .onUnmappableCharacter(CodingErrorAction.REPORT)
+                        .decode(ByteBuffer.wrap(bytes, offset, bytes.length - offset))
+                        .toString();
+            } catch (CharacterCodingException e) {
+                return Charset.forName("windows-1252").decode(ByteBuffer.wrap(bytes, offset, bytes.length - offset)).toString();
+            }
+        } catch (IOException e) {
+            throw new BusinessException("Erro ao ler o arquivo CSV: " + e.getMessage());
+        }
+    }
+
+    private boolean isSalaryRow(String normalizedLabel) {
+        return normalizedLabel.equals("salario")
+                || normalizedLabel.equals("salarios")
+                || normalizedLabel.startsWith("salario ")
+                || normalizedLabel.equals("renda")
+                || normalizedLabel.equals("receita")
+                || normalizedLabel.equals("receitas")
+                || normalizedLabel.equals("entrada")
+                || normalizedLabel.equals("entradas")
+                || normalizedLabel.equals("proventos");
     }
 
     private char detectDelimiter(String headerLine) {
@@ -240,7 +197,7 @@ public class ExpenseImportService implements ImportExpensesCsvUseCase {
         long commas = headerLine.chars().filter(ch -> ch == ',').count();
         long tabs = headerLine.chars().filter(ch -> ch == '\t').count();
         if (tabs > semicolons && tabs > commas) return '\t';
-        return semicolons > commas ? ';' : ',';
+        return semicolons >= commas ? ';' : ',';
     }
 
     private List<String> parseCsvLine(String line, char delimiter) {
@@ -263,16 +220,18 @@ public class ExpenseImportService implements ImportExpensesCsvUseCase {
         return tokens;
     }
 
-    private String normalizeHeader(String input) {
+    private String normalizeText(String input) {
         if (input == null) return "";
         String normalized = Normalizer.normalize(input.trim(), Normalizer.Form.NFD)
                 .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
-        return normalized.toLowerCase(Locale.ROOT);
+        return normalized.toLowerCase(Locale.ROOT).replaceAll("\\s+", " ");
     }
 
     private BigDecimal parseAmount(String raw) {
         if (raw == null || raw.isBlank()) return null;
-        String cleaned = raw.replaceAll("[R$\\s\"']", "").trim();
+        String cleaned = raw.replace("\u00A0", "")
+                .replaceAll("[R$\\s\"']", "")
+                .trim();
         if (cleaned.isEmpty()) return null;
 
         int lastComma = cleaned.lastIndexOf(',');
@@ -282,6 +241,8 @@ public class ExpenseImportService implements ImportExpensesCsvUseCase {
             cleaned = cleaned.replace(".", "").replace(",", ".");
         } else if (lastDot > lastComma && lastComma != -1) {
             cleaned = cleaned.replace(",", "");
+        } else if (lastDot != -1 && cleaned.matches("^\\d{1,3}(\\.\\d{3})+$")) {
+            cleaned = cleaned.replace(".", "");
         }
 
         try {
@@ -289,5 +250,9 @@ public class ExpenseImportService implements ImportExpensesCsvUseCase {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    private String truncate(String value, int maxLen) {
+        return value.length() > maxLen ? value.substring(0, maxLen) : value;
     }
 }

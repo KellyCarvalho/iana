@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Expense } from '../models/api.models';
+import { Expense, ImportFinancesResponse } from '../models/api.models';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -28,12 +28,12 @@ export class ExpenseService {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 
-  importStatementFile(file: File, categoryId?: string): Observable<Expense[]> {
+  importStatementFile(file: File, categoryId?: string): Observable<ImportFinancesResponse> {
     const formData = new FormData();
     formData.append('file', file);
     if (categoryId) {
       formData.append('categoryId', categoryId);
     }
-    return this.http.post<Expense[]>(`${this.baseUrl}/import-file`, formData);
+    return this.http.post<ImportFinancesResponse>(`${this.baseUrl}/import-file`, formData);
   }
 }

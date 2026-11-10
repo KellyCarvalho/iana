@@ -8,8 +8,10 @@ import com.iana.domain.ports.in.DeleteExpenseUseCase;
 import com.iana.domain.ports.in.FindExpenseUseCase;
 import com.iana.domain.ports.in.ImportExpensesCsvUseCase;
 import com.iana.domain.ports.in.UpdateExpenseUseCase;
+import com.iana.infrastructure.adapters.in.web.dto.BalanceResponse;
 import com.iana.infrastructure.adapters.in.web.dto.CreateExpenseRequest;
 import com.iana.infrastructure.adapters.in.web.dto.ExpenseResponse;
+import com.iana.infrastructure.adapters.in.web.dto.ImportFinancesResponse;
 import com.iana.infrastructure.adapters.in.web.dto.UpdateExpenseRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,7 +33,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/expenses")
-@Tag(name = "Expenses", description = "Endpoints para gerenciamento de despesas e importação de faturas/boletos (CSV e PDF)")
+@Tag(name = "Expenses", description = "Endpoints para gerenciamento de despesas e importação da planilha modelo CSV")
 public class ExpenseController {
 
     private final CreateExpenseUseCase createExpenseUseCase;
@@ -64,12 +66,12 @@ public class ExpenseController {
     }
 
     @PostMapping(value = {"/import-csv", "/import-file"}, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "Importar despesas a partir de fatura de cartão de crédito ou boleto (CSV ou PDF)")
-    public ResponseEntity<List<ExpenseResponse>> importCsvOrPdf(
+    @Operation(summary = "Importar despesas e salário a partir do modelo único em CSV (Despesa;Meses...;Salário)")
+    public ResponseEntity<ImportFinancesResponse> importCsv(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "categoryId", required = false) UUID categoryId) {
         if (file == null || file.isEmpty()) {
-            throw new BusinessException("Selecione um arquivo CSV ou PDF válido para importar.");
+            throw new BusinessException("Selecione um arquivo CSV válido para importar.");
         }
         if (importExpensesCsvUseCase == null) {
             throw new BusinessException("Serviço de importação de arquivos indisponível.");
@@ -82,14 +84,21 @@ public class ExpenseController {
                     || contentType.contains("pdf")
                     || (bytes.length > 4 && new String(bytes, 0, 5, StandardCharsets.ISO_8859_1).startsWith("%PDF-"));
 
-            List<Expense> imported = isPdf
-                    ? importExpensesCsvUseCase.importFromPdf(bytes, categoryId)
-                    : importExpensesCsvUseCase.importFromCsv(new ByteArrayInputStream(bytes), categoryId);
+            if (isPdf || (!filename.isEmpty() && !filename.endsWith(".csv") && !filename.endsWith(".txt"))) {
+                throw new BusinessException("Formato inválido. Utilize apenas o modelo único em CSV (Despesa;Meses...;Salário).");
+            }
 
-            List<ExpenseResponse> response = imported.stream()
+            ImportExpensesCsvUseCase.ImportResult result =
+                    importExpensesCsvUseCase.importPlanilhaCsv(new ByteArrayInputStream(bytes), categoryId);
+
+            List<ExpenseResponse> expenses = result.expenses().stream()
                     .map(ExpenseResponse::fromDomain)
                     .collect(Collectors.toList());
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            List<BalanceResponse> balances = result.balances().stream()
+                    .map(BalanceResponse::fromDomain)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(new ImportFinancesResponse(expenses, balances));
         } catch (IOException e) {
             throw new BusinessException("Falha ao processar o arquivo enviado.");
         }

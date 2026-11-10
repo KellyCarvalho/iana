@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -16,7 +16,7 @@ import { Balance, Category, Expense } from '../../core/models/api.models';
       <div>
         <h1>Organizador de Finanças</h1>
         <p style="color: #475569; font-size: 0.9rem; margin-top: 0.2rem;">
-          Gerencie suas despesas, importe faturas de cartão ou boletos (CSV/PDF) e acompanhe seu saldo.
+          Gerencie suas despesas, importe sua planilha no modelo único CSV e acompanhe seu saldo.
         </p>
       </div>
       <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
@@ -93,35 +93,36 @@ import { Balance, Category, Expense } from '../../core/models/api.models';
 
     <!-- SEÇÃO DE DESPESAS -->
     <ng-container *ngIf="activeTab === 'all' || activeTab === 'expenses'">
-      <!-- Card de Importação de Fatura de Cartão ou Boleto (CSV / PDF) -->
+      <!-- Card de Importação de Planilha (Modelo Único CSV) -->
       <div class="card" style="border: 2px dashed #60a5fa; background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 0.85rem;">
           <div>
             <h2 style="font-size: 1.1rem; color: #1e3a8a; display: flex; align-items: center; gap: 0.5rem;">
-              💳📄 Importar Fatura de Cartão ou Boleto (CSV ou PDF)
+              📊 Importar Planilha (Modelo Único CSV)
             </h2>
             <p style="font-size: 0.84rem; color: #475569; margin-top: 0.25rem;">
-              <strong>Não precisa de template!</strong> Identificamos automaticamente as colunas e lançamentos de qualquer banco (Nubank, Inter, Itaú, Bradesco, C6, Santander) em <strong>CSV</strong> ou <strong>PDF</strong>.
+              Utilize o modelo único com a coluna <strong>Despesa</strong>, as colunas dos <strong>meses</strong> (Janeiro, Fevereiro...) e a linha <strong>Salário</strong> para suas entradas.
             </p>
           </div>
           <button type="button" class="btn btn-secondary btn-sm" (click)="downloadSampleCsv()">
-            📥 Baixar Exemplo CSV
+            📥 Baixar Modelo CSV
           </button>
         </div>
 
         <div class="form-grid" style="align-items: end;">
           <div class="form-group">
-            <label>Arquivo da Fatura ou Boleto (.CSV ou .PDF) *</label>
+            <label>Arquivo da Planilha (.CSV) *</label>
             <input
+              #csvFileInput
               type="file"
-              accept=".csv,.pdf,text/csv,application/pdf"
+              accept=".csv,text/csv"
               (change)="onCsvFileSelected($event)"
               style="padding: 0.5rem; background: #ffffff;" />
           </div>
           <div class="form-group">
-            <label>Categoria para a Fatura (opcional)</label>
+            <label>Categoria para as Despesas (opcional)</label>
             <select [(ngModel)]="csvCategoryId" name="csvCategoryId" style="background: #ffffff;">
-              <option [ngValue]="undefined">Automático (usar do arquivo ou sem categoria)</option>
+              <option [ngValue]="undefined">Sem categoria</option>
               <option *ngFor="let c of categories" [value]="c.id">{{ c.name }}</option>
             </select>
           </div>
@@ -129,9 +130,9 @@ import { Balance, Category, Expense } from '../../core/models/api.models';
             <button
               type="button"
               class="btn btn-primary"
-              [disabled]="!selectedCsvFile || isImportingCsv"
+              [disabled]="!selectedCsvFile || csvPreviewItems.length === 0 || isImportingCsv"
               (click)="uploadCsv()">
-              {{ isImportingCsv ? 'Processando arquivo...' : 'Importar Despesas' }}
+              {{ isImportingCsv ? 'Importando...' : 'Importar Planilha' }}
             </button>
             <button
               *ngIf="selectedCsvFile"
@@ -143,30 +144,37 @@ import { Balance, Category, Expense } from '../../core/models/api.models';
           </div>
         </div>
 
-        <!-- Indicador quando PDF é selecionado -->
-        <div *ngIf="isPdfSelected && selectedCsvFile" style="margin-top: 0.85rem; padding: 0.75rem 1rem; border-radius: 8px; background: #dbeafe; border: 1px solid #93c5fd; color: #1e3a8a; font-size: 0.86rem;">
-          📄 <strong>PDF selecionado:</strong> {{ selectedCsvFile.name }} — Clique em <strong>"Importar Despesas"</strong> para extrair automaticamente as compras da fatura ou dados do boleto.
-        </div>
-
         <!-- Preview rápido do CSV selecionado -->
         <div *ngIf="csvPreviewItems.length > 0" style="margin-top: 1rem; padding-top: 0.85rem; border-top: 1px solid #bfdbfe;">
           <div style="font-size: 0.82rem; color: #1e3a8a; margin-bottom: 0.5rem; font-weight: 600;">
-            Pré-visualização do arquivo ({{ csvPreviewItems.length }} lançamento(s) identificado(s)):
+            Pré-visualização ({{ csvPreviewItems.length }} lançamento(s) identificado(s)):
           </div>
-          <div style="max-height: 180px; overflow-y: auto; border: 1px solid #bfdbfe; border-radius: 8px; background: #ffffff;">
+          <div style="max-height: 200px; overflow-y: auto; border: 1px solid #bfdbfe; border-radius: 8px; background: #ffffff;">
             <table>
               <thead>
                 <tr>
-                  <th>Estabelecimento / Nome</th>
-                  <th>Detalhes / Data</th>
+                  <th>Tipo</th>
+                  <th>Despesa / Origem</th>
+                  <th>Mês</th>
                   <th>Valor</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngFor="let item of csvPreviewItems">
+                  <td style="padding: 0.5rem 0.85rem;">
+                    <span
+                      class="badge"
+                      [ngClass]="item.type === 'balance' ? 'badge-success' : 'badge-danger'">
+                      {{ item.type === 'balance' ? 'Salário' : 'Despesa' }}
+                    </span>
+                  </td>
                   <td style="padding: 0.5rem 0.85rem; font-weight: 500;">{{ item.name }}</td>
-                  <td style="padding: 0.5rem 0.85rem; color: #475569; font-size: 0.82rem;">{{ item.description }}</td>
-                  <td style="padding: 0.5rem 0.85rem; color: #dc2626; font-weight: 600;">{{ formatCurrency(item.amount) }}</td>
+                  <td style="padding: 0.5rem 0.85rem; color: #475569; font-size: 0.82rem;">{{ item.month }}</td>
+                  <td
+                    style="padding: 0.5rem 0.85rem; font-weight: 600;"
+                    [style.color]="item.type === 'balance' ? '#059669' : '#dc2626'">
+                    {{ item.type === 'balance' ? '+' : '-' }} {{ formatCurrency(item.amount) }}
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -404,11 +412,12 @@ export class FinancesComponent implements OnInit {
   expenseToDelete: Expense | null = null;
   balanceToDelete: Balance | null = null;
 
+  @ViewChild('csvFileInput') csvFileInput?: ElementRef<HTMLInputElement>;
+
   selectedCsvFile: File | null = null;
-  isPdfSelected = false;
   csvCategoryId?: string = undefined;
   isImportingCsv = false;
-  csvPreviewItems: Array<{ name: string; amount: number; description: string }> = [];
+  csvPreviewItems: Array<{ type: 'expense' | 'balance'; name: string; month: string; amount: number }> = [];
 
   errorMessage = '';
   successMessage = '';
@@ -495,7 +504,7 @@ export class FinancesComponent implements OnInit {
     return this.categories.find((c) => c.id === categoryId)?.name || 'Sem categoria';
   }
 
-  // Importação de CSV ou PDF de Fatura de Cartão / Boleto
+  // Importação da planilha modelo único CSV (Despesa | Meses... | Salário)
   onCsvFileSelected(event: Event): void {
     this.errorMessage = '';
     this.successMessage = '';
@@ -504,20 +513,21 @@ export class FinancesComponent implements OnInit {
       this.clearCsvSelection();
       return;
     }
-    this.selectedCsvFile = input.files[0];
-    const nameLower = this.selectedCsvFile.name.toLowerCase();
-    this.isPdfSelected = nameLower.endsWith('.pdf') || this.selectedCsvFile.type === 'application/pdf';
-    if (this.isPdfSelected) {
-      this.csvPreviewItems = [];
-    } else {
-      this.buildClientSideCsvPreview(this.selectedCsvFile);
+    const file = input.files[0];
+    if (!file.name.toLowerCase().endsWith('.csv') && !file.name.toLowerCase().endsWith('.txt')) {
+      this.clearCsvSelection();
+      this.errorMessage = 'Formato inválido. Selecione um arquivo .csv no modelo único (Despesa;Meses...;Salário).';
+      return;
     }
+    this.selectedCsvFile = file;
+    this.buildClientSideCsvPreview(file);
   }
 
   private buildClientSideCsvPreview(file: File): void {
     const reader = new FileReader();
     reader.onload = () => {
-      const text = (reader.result as string) || '';
+      const buffer = reader.result as ArrayBuffer;
+      const text = this.decodeCsvBuffer(buffer);
       const lines = text
         .replace(/\uFEFF/g, '')
         .split(/\r?\n/)
@@ -526,56 +536,149 @@ export class FinancesComponent implements OnInit {
 
       if (lines.length === 0) {
         this.csvPreviewItems = [];
+        this.errorMessage = 'O arquivo CSV está vazio.';
         return;
       }
 
-      const delimiter = (lines[0].match(/;/g) || []).length > (lines[0].match(/,/g) || []).length ? ';' : ',';
-      const firstCols = lines[0].split(delimiter).map((c) => c.replace(/^"|"$/g, '').trim().toLowerCase());
+      const delimiter = this.detectCsvDelimiter(lines[0]);
+      const headerCols = this.parseCsvLine(lines[0], delimiter);
+      const firstHeader = this.normalizeText(headerCols[0] || '');
+      const validHeaders = ['despesa', 'despesas', 'descricao', 'item', 'conta', 'contas', 'gasto', 'gastos', 'nome'];
 
-      let nameIdx = firstCols.findIndex((c) =>
-        ['title', 'titulo', 'título', 'nome', 'name', 'estabelecimento', 'lancamento', 'lançamento', 'historico', 'histórico'].includes(c)
-      );
-      let amountIdx = firstCols.findIndex((c) => ['amount', 'valor', 'value', 'preco', 'preço', 'total'].includes(c));
-      let descIdx = firstCols.findIndex((c) => ['description', 'descricao', 'descrição', 'detalhes', 'obs'].includes(c));
-      let dateIdx = firstCols.findIndex((c) => ['date', 'data', 'vencimento'].includes(c));
-      let catIdx = firstCols.findIndex((c) => ['category', 'categoria', 'tipo'].includes(c));
-
-      const hasHeader = nameIdx !== -1 || amountIdx !== -1;
-      if (!hasHeader) {
-        nameIdx = 0;
-        amountIdx = firstCols.length > 1 ? 1 : 0;
-        descIdx = firstCols.length > 2 ? 2 : -1;
+      if (headerCols.length < 2 || !validHeaders.includes(firstHeader)) {
+        this.csvPreviewItems = [];
+        this.errorMessage =
+          "Modelo inválido. A primeira coluna do cabeçalho deve ser 'Despesa' seguida pelos meses (ex.: Despesa;Janeiro;Fevereiro;...) e a linha 'Salário'.";
+        return;
       }
 
-      const preview: Array<{ name: string; amount: number; description: string }> = [];
-      for (let i = hasHeader ? 1 : 0; i < lines.length; i++) {
-        const cols = lines[i].split(delimiter).map((c) => c.replace(/^"|"$/g, '').trim());
-        const rawName = cols[nameIdx] || '';
-        const rawAmount = (cols[amountIdx] || '').replace(/[R$\s]/g, '');
-        const normalizedAmount =
-          rawAmount.lastIndexOf(',') > rawAmount.lastIndexOf('.')
-            ? rawAmount.replace(/\./g, '').replace(',', '.')
-            : rawAmount.replace(/,/g, '');
-        const amount = Number(normalizedAmount);
-
-        if (!rawName || isNaN(amount) || amount <= 0 || rawName.toLowerCase().includes('pagamento recebido')) {
-          continue;
+      const monthColumns: Array<{ index: number; name: string }> = [];
+      for (let c = 1; c < headerCols.length; c++) {
+        const name = headerCols[c].trim();
+        if (name) {
+          monthColumns.push({ index: c, name });
         }
-
-        const parts: string[] = [];
-        if (descIdx !== -1 && cols[descIdx]) parts.push(cols[descIdx]);
-        if (dateIdx !== -1 && cols[dateIdx]) parts.push(`Data: ${cols[dateIdx]}`);
-        if (catIdx !== -1 && cols[catIdx]) parts.push(`Cat: ${cols[catIdx]}`);
-
-        preview.push({
-          name: rawName,
-          amount,
-          description: parts.join(' | ') || 'Importado via fatura CSV'
-        });
       }
+
+      if (monthColumns.length === 0) {
+        this.csvPreviewItems = [];
+        this.errorMessage = "Informe pelo menos uma coluna de mês após a coluna 'Despesa'.";
+        return;
+      }
+
+      const summaryRows = new Set([
+        'total', 'total despesas', 'total de despesas', 'total gastos', 'total de gastos',
+        'subtotal', 'saldo', 'saldo final', 'saldo liquido', 'saldo restante', 'balanco', 'resumo'
+      ]);
+
+      const preview: Array<{ type: 'expense' | 'balance'; name: string; month: string; amount: number }> = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const cols = this.parseCsvLine(lines[i], delimiter);
+        const rawLabel = (cols[0] || '').trim();
+        if (!rawLabel) continue;
+
+        const normalizedLabel = this.normalizeText(rawLabel);
+        if (summaryRows.has(normalizedLabel)) continue;
+
+        const isSalary =
+          normalizedLabel === 'salario' ||
+          normalizedLabel === 'salarios' ||
+          normalizedLabel.startsWith('salario ') ||
+          normalizedLabel === 'renda' ||
+          normalizedLabel === 'receita' ||
+          normalizedLabel === 'receitas' ||
+          normalizedLabel === 'entrada' ||
+          normalizedLabel === 'entradas' ||
+          normalizedLabel === 'proventos';
+
+        for (const monthCol of monthColumns) {
+          const cell = (cols[monthCol.index] || '').trim();
+          if (!cell || cell === '-' || cell === '--') continue;
+
+          const amount = this.parseCsvAmount(cell);
+          if (amount === null || amount <= 0) continue;
+
+          preview.push({
+            type: isSalary ? 'balance' : 'expense',
+            name: rawLabel,
+            month: monthCol.name,
+            amount
+          });
+        }
+      }
+
       this.csvPreviewItems = preview;
+      if (preview.length === 0) {
+        this.errorMessage = 'Nenhum valor positivo de despesa ou salário foi encontrado na planilha.';
+      }
     };
-    reader.readAsText(file, 'UTF-8');
+    reader.readAsArrayBuffer(file);
+  }
+
+  private decodeCsvBuffer(buffer: ArrayBuffer): string {
+    const bytes = new Uint8Array(buffer);
+    try {
+      return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    } catch {
+      return new TextDecoder('windows-1252').decode(bytes);
+    }
+  }
+
+  private detectCsvDelimiter(headerLine: string): string {
+    const semicolons = (headerLine.match(/;/g) || []).length;
+    const commas = (headerLine.match(/,/g) || []).length;
+    const tabs = (headerLine.match(/\t/g) || []).length;
+    if (tabs > semicolons && tabs > commas) return '\t';
+    return semicolons >= commas ? ';' : ',';
+  }
+
+  private parseCsvLine(line: string, delimiter: string): string[] {
+    const tokens: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        inQuotes = !inQuotes;
+      } else if (ch === delimiter && !inQuotes) {
+        tokens.push(current.trim());
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+    tokens.push(current.trim());
+    return tokens;
+  }
+
+  private normalizeText(value: string): string {
+    return value
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ');
+  }
+
+  private parseCsvAmount(raw: string): number | null {
+    const cleaned = raw.replace(/\u00A0/g, '').replace(/[R$\s"']/g, '').trim();
+    if (!cleaned) return null;
+
+    const lastComma = cleaned.lastIndexOf(',');
+    const lastDot = cleaned.lastIndexOf('.');
+    let normalized = cleaned;
+
+    if (lastComma > lastDot) {
+      normalized = cleaned.replace(/\./g, '').replace(',', '.');
+    } else if (lastDot > lastComma && lastComma !== -1) {
+      normalized = cleaned.replace(/,/g, '');
+    } else if (lastDot !== -1 && /^\d{1,3}(\.\d{3})+$/.test(cleaned)) {
+      normalized = cleaned.replace(/\./g, '');
+    }
+
+    const num = Number(normalized);
+    return Number.isFinite(num) ? num : null;
   }
 
   uploadCsv(): void {
@@ -585,39 +688,45 @@ export class FinancesComponent implements OnInit {
     this.isImportingCsv = true;
 
     this.expenseService.importStatementFile(this.selectedCsvFile, this.csvCategoryId).subscribe({
-      next: (imported) => {
+      next: (result) => {
         this.isImportingCsv = false;
-        this.successMessage = `${imported.length} despesa(s) importada(s) com sucesso!`;
+        const expensesCount = result.totalExpensesImported ?? result.expenses?.length ?? 0;
+        const balancesCount = result.totalBalancesImported ?? result.balances?.length ?? 0;
+        this.successMessage = `Importação concluída: ${expensesCount} despesa(s) e ${balancesCount} registro(s) de salário importado(s)!`;
         this.clearCsvSelection();
         this.loadExpenses();
+        this.loadBalances();
       },
       error: (err) => {
         this.isImportingCsv = false;
-        this.errorMessage = err.error?.message || 'Erro ao importar arquivo.';
+        this.errorMessage = err.error?.message || 'Erro ao importar planilha.';
       }
     });
   }
 
   clearCsvSelection(): void {
     this.selectedCsvFile = null;
-    this.isPdfSelected = false;
     this.csvPreviewItems = [];
+    if (this.csvFileInput?.nativeElement) {
+      this.csvFileInput.nativeElement.value = '';
+    }
   }
 
   downloadSampleCsv(): void {
     const sample = [
-      'date,category,title,amount',
-      '2026-11-01,restaurante,iFood *Restaurante Sabor,64.90',
-      '2026-11-02,transporte,Uber *Trip,28.50',
-      '2026-11-03,supermercado,Supermercado Extra,342.15',
-      '2026-11-03,servicos,Netflix.Com,55.90'
+      'Despesa;Janeiro;Fevereiro;Março;Abril;Maio;Junho;Julho;Agosto;Setembro;Outubro;Novembro;Dezembro',
+      'Aluguel;1500,00;1500,00;1500,00;1500,00;1500,00;1500,00;1500,00;1500,00;1500,00;1500,00;1500,00;1500,00',
+      'Energia;180,00;195,50;170,00;165,00;185,00;190,00;200,00;195,00;180,00;175,00;185,00;210,00',
+      'Internet;120,00;120,00;120,00;120,00;120,00;120,00;120,00;120,00;120,00;120,00;120,00;120,00',
+      'Supermercado;850,00;900,00;820,00;880,00;910,00;870,00;890,00;920,00;860,00;900,00;930,00;980,00',
+      'Salário;4500,00;4500,00;4500,00;4500,00;4500,00;4500,00;4500,00;4500,00;4500,00;4500,00;4500,00;4500,00'
     ].join('\n');
 
-    const blob = new Blob([sample], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob(['\uFEFF' + sample], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'fatura-cartao-exemplo.csv';
+    a.download = 'modelo-financas-iana.csv';
     a.click();
     URL.revokeObjectURL(url);
   }

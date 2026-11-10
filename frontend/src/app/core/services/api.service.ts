@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Balance, Category, Expense, Link, User } from '../models/api.models';
+import { Balance, Category, Expense, ImportFinancesResponse, Link, User } from '../models/api.models';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -29,13 +29,13 @@ export class ApiService {
     return this.http.delete<void>(`${this.baseUrl}/expenses/${id}`);
   }
 
-  importExpensesCsv(file: File, categoryId?: string): Observable<Expense[]> {
+  importExpensesCsv(file: File, categoryId?: string): Observable<ImportFinancesResponse> {
     const formData = new FormData();
     formData.append('file', file);
     if (categoryId) {
       formData.append('categoryId', categoryId);
     }
-    return this.http.post<Expense[]>(`${this.baseUrl}/expenses/import-csv`, formData);
+    return this.http.post<ImportFinancesResponse>(`${this.baseUrl}/expenses/import-csv`, formData);
   }
 
   // Balances (Saldos)

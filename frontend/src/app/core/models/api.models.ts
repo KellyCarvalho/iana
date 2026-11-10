@@ -51,4 +51,9 @@ export interface Balance {
   createdAt: string;
 }
 
-
+export interface ImportFinancesResponse {
+  expenses: Expense[];
+  balances: Balance[];
+  totalExpensesImported: number;
+  totalBalancesImported: number;
+}

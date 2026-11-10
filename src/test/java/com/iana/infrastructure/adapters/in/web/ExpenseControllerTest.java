@@ -1,6 +1,7 @@
 package com.iana.infrastructure.adapters.in.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.iana.domain.model.Balance;
 import com.iana.domain.model.Expense;
 import com.iana.domain.ports.in.CreateExpenseUseCase;
 import com.iana.domain.ports.in.DeleteExpenseUseCase;
@@ -88,22 +89,44 @@ class ExpenseControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/v1/expenses/import-csv deve importar despesas via CSV")
+    @DisplayName("POST /api/v1/expenses/import-csv deve importar despesas e salário via modelo único CSV")
     void shouldImportExpensesCsv() throws Exception {
         MockMultipartFile file = new MockMultipartFile(
                 "file",
-                "fatura.csv",
+                "modelo-financas.csv",
                 "text/csv",
-                "date,category,title,amount\n2026-11-01,casa,Aluguel,1800.00".getBytes(StandardCharsets.UTF_8)
+                "Despesa;Janeiro\nAluguel;1800,00\nSalário;5000,00".getBytes(StandardCharsets.UTF_8)
         );
-        when(importExpensesCsvUseCase.importFromCsv(any(), any())).thenReturn(List.of(expense));
+        Balance salary = new Balance(UUID.randomUUID(), "Salário", new BigDecimal("5000.00"), "Mês: Janeiro", LocalDateTime.now());
+        when(importExpensesCsvUseCase.importPlanilhaCsv(any(), any()))
+                .thenReturn(new ImportExpensesCsvUseCase.ImportResult(List.of(expense), List.of(salary)));
 
         mockMvc.perform(multipart("/api/v1/expenses/import-csv")
                         .file(file)
                         .with(jwt()))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$[0].name").value("Aluguel"))
-                .andExpect(jsonPath("$[0].amount").value(1800.00));
+                .andExpect(jsonPath("$.expenses[0].name").value("Aluguel"))
+                .andExpect(jsonPath("$.expenses[0].amount").value(1800.00))
+                .andExpect(jsonPath("$.balances[0].source").value("Salário"))
+                .andExpect(jsonPath("$.balances[0].amount").value(5000.00))
+                .andExpect(jsonPath("$.totalExpensesImported").value(1))
+                .andExpect(jsonPath("$.totalBalancesImported").value(1));
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/expenses/import-file deve rejeitar PDF e exigir o modelo único CSV")
+    void shouldRejectNonCsvImport() throws Exception {
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "fatura.pdf",
+                "application/pdf",
+                "%PDF-1.4 sample".getBytes(StandardCharsets.UTF_8)
+        );
+
+        mockMvc.perform(multipart("/api/v1/expenses/import-file")
+                        .file(file)
+                        .with(jwt()))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
