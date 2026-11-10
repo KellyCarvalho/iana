@@ -1,6 +1,6 @@
 # IANA — Organizador de Finanças Pessoais
 
-O **IANA** é uma aplicação completa para gestão e controle financeiro pessoal, desenvolvida com arquitetura hexagonal no backend (Spring Boot 3 + Java 21) e interface moderna e intuitiva no frontend (Angular 17 Standalone).
+O **IANA** é uma aplicação completa para gestão e controle financeiro pessoal, desenvolvida com arquitetura hexagonal no backend (Spring Boot 3 + Java 21) e interface moderna e intuitiva no frontend (Angular 18 Standalone).
 
 ---
 
@@ -17,9 +17,17 @@ O sistema adota uma identidade visual clara em **Azul Real & Branco** (`#2563eb`
 - **Gestão de Despesas & Saldos**:
   - Cadastro de despesas com nome, valor, descrição e categoria opcional.
   - Cadastro de fontes de saldo/entradas com cálculo em tempo real do **Saldo Líquido**.
-- **Importação Inteligente de Faturas e Boletos (Sem Template)**:
-  - Suporte a extratos em **CSV** e **PDF** de qualquer instituição bancária (Nubank, Banco Inter, Itaú, C6, Bradesco, Santander, etc.).
-  - Detecção inteligente de colunas (datas, estabelecimentos, valores positivos/negativos, categorias).
+- **Importação via Modelo Único de Planilha (CSV)**:
+  - Importação padronizada com coluna **`Despesa`**, colunas de **meses** (`Janeiro`, `Fevereiro`, ...) e linha **`Salário`** (registrada automaticamente como saldo/entrada).
+  - Suporte a arquivos separados por `;`, `,` ou tabulação, codificação UTF-8 ou Windows-1252 (Excel em português), com download do modelo pronto (`modelo-financas-iana.csv`) e pré-visualização antes do envio.
+
+```csv
+Despesa;Janeiro;Fevereiro;Março
+Aluguel;1500,00;1500,00;1500,00
+Energia;180,00;195,50;170,00
+Salário;4500,00;4500,00;4500,00
+```
+
 - **Categorização Personalizada**:
   - Criação e manutenção de categorias exclusivas de cada usuário.
 - **Autenticação Segura & Recuperação de Senha**:
@@ -35,11 +43,10 @@ O sistema adota uma identidade visual clara em **Azul Real & Branco** (`#2563eb`
 - **Java 21** & **Spring Boot 3.4.1**
 - **Arquitetura Hexagonal (Ports & Adapters)**
 - **Spring Security** com JWT (Nimbus JOSE) & BCrypt
-- **Spring Data JPA** & Banco de Dados H2 (em memória / arquivo)
-- **Apache PDFBox** para extração de extratos bancários e boletos em PDF
+- **Spring Data JPA** & Banco de Dados H2 (em memória / arquivo local)
 
 ### Frontend
-- **Angular 17** (Standalone Components)
+- **Angular 18** (Standalone Components)
 - **TypeScript**, **RxJS** e **HTML5/CSS3**
 - Layout responsivo com design limpo em tons de azul e branco
 
